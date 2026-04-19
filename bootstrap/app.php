@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+         $middleware->alias([
+            'check.estado' => \App\Http\Middleware\CheckUsuarioEstado::class,
+        ]);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
