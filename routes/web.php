@@ -22,6 +22,15 @@ Route::middleware(['auth', 'check.estado'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+    Route::middleware(['auth', 'check.estado', 'verificar.rol:SuperAdmin'])->group(function () {
+        Route::get('/panel-superadmin', function () {
+            return 'Bienvenido, SuperAdmin';
+        })->name('panel.superadmin');
+    });
+
+
 });
 
 require __DIR__.'/auth.php';
