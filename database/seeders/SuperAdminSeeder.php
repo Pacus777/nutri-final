@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Usuario;
 use App\Models\Rol;
 
@@ -12,10 +11,10 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         $usuario = Usuario::firstOrCreate(
-            ['cor_usu' => 'superadmin@proyecto.local'],
+            ['cor_usu' => 'dilanjpacogarcia@gmail.com'],
             [
                 'nom_usu' => 'Super Administrador',
-                'cla_usu' => Hash::make('Admin12345*'),
+                'cla_usu' => 'Admin12345*',
                 'est_usu' => 'activo',
             ]
         );

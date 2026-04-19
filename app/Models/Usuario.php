@@ -33,22 +33,27 @@ class Usuario extends Authenticatable
     protected function casts(): array
     {
         return [
+            'cla_usu' => 'hashed',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
     }
 
-    /**
-     * Laravel usa este campo como contraseña autenticable.
-     */
     public function getAuthPassword(): string
     {
         return $this->cla_usu;
     }
 
-    /**
-     * Relación con roles.
-     */
+    public function getEmailForPasswordReset(): string
+    {
+        return $this->cor_usu;
+    }
+
+    public function getEmailAttribute(): string
+    {
+        return $this->cor_usu;
+    }
+
     public function roles()
     {
         return $this->belongsToMany(
