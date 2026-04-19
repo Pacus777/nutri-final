@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route('roles.seleccionar', absolute: false));
     }
 
     /**
@@ -42,6 +42,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+
+        $request->session()->forget(['cod_rol_activo', 'nom_rol_activo']);
 
         $request->session()->invalidate();
 

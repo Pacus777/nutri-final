@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
          $middleware->alias([
             'check.estado' => \App\Http\Middleware\CheckUsuarioEstado::class,
             'verificar.rol' => \App\Http\Middleware\VerificarRol::class,
+            'verificar.rol.activo' => \App\Http\Middleware\VerificarRolActivo::class,
         ]);
 
         //

@@ -1,11 +1,11 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RolActivoController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-use App\Http\Controllers\UsuarioController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -16,7 +16,29 @@ Route::get('/', function () {
     ]);
 });
 
+/*
+|--------------------------------------------------------------------------
+| Rutas autenticadas que NO exigen rol activo
+|--------------------------------------------------------------------------
+| Aquí van las rutas que sirven justamente para establecer el rol activo.
+*/
 Route::middleware(['auth', 'check.estado'])->group(function () {
+    Route::get('/seleccionar-rol', [RolActivoController::class, 'seleccionar'])
+        ->name('roles.seleccionar');
+
+    Route::post('/seleccionar-rol', [RolActivoController::class, 'guardar'])
+        ->name('roles.guardar');
+
+    Route::post('/cambiar-rol-activo', [RolActivoController::class, 'cambiar'])
+        ->name('roles.cambiar');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Rutas autenticadas que SÍ exigen rol activo
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'check.estado', 'verificar.rol.activo'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
@@ -35,12 +57,11 @@ Route::middleware(['auth', 'check.estado'])->group(function () {
         Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
         Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
         Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
+        Route::get('/usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
+        Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
+        Route::patch('/usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])
+            ->name('usuarios.cambiar-estado');
     });
-
-    Route::get('/usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
-    Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
-    Route::patch('/usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])
-    ->name('usuarios.cambiar-estado');
 });
 
 require __DIR__ . '/auth.php';
