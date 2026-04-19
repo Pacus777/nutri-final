@@ -82,6 +82,35 @@ class UsuarioController extends Controller
 
     public function update(UpdateUsuarioRequest $request, Usuario $usuario): RedirectResponse
     {
+        $usuarioAutenticado = auth()->user();
+        $rolesSeleccionados = collect($request->roles)->map(fn ($rol) => (int) $rol)->values();
+
+        if ($rolesSeleccionados->isEmpty()) {
+            return back()->withErrors([
+                'roles' => 'Debes asignar al menos un rol al usuario.',
+            ])->withInput();
+        }
+
+        if ($usuarioAutenticado->cod_usuarios === $usuario->cod_usuarios) {
+            if (in_array($request->est_usu, ['inactivo', 'bloqueado'], true)) {
+                return back()->withErrors([
+                    'est_usu' => 'No puedes cambiar tu propio estado a inactivo o bloqueado.',
+                ])->withInput();
+            }
+
+            $rolSuperAdmin = \App\Models\Rol::where('nom_rol', 'SuperAdmin')->first();
+
+            if ($rolSuperAdmin && $usuarioAutenticado->tieneRol('SuperAdmin')) {
+                $mantieneSuperAdmin = $rolesSeleccionados->contains((int) $rolSuperAdmin->cod_roles);
+
+                if (! $mantieneSuperAdmin) {
+                    return back()->withErrors([
+                        'roles' => 'No puedes quitarte a ti mismo el rol SuperAdmin.',
+                    ])->withInput();
+                }
+            }
+        }
+
         $usuario->update([
             'nom_usu' => $request->nom_usu,
             'cor_usu' => $request->cor_usu,
@@ -94,10 +123,33 @@ class UsuarioController extends Controller
             ]);
         }
 
-        $usuario->roles()->sync($request->roles);
+        $usuario->roles()->sync($rolesSeleccionados->all());
 
         return redirect()
             ->route('usuarios.index')
             ->with('success', 'Usuario actualizado correctamente.');
+    }
+
+    public function cambiarEstado(\Illuminate\Http\Request $request, Usuario $usuario): RedirectResponse
+    {
+        $request->validate([
+            'est_usu' => ['required', \Illuminate\Validation\Rule::in(['activo', 'inactivo', 'bloqueado'])],
+        ]);
+
+        $usuarioAutenticado = auth()->user();
+
+        if ($usuarioAutenticado->cod_usuarios === $usuario->cod_usuarios) {
+            if (in_array($request->est_usu, ['inactivo', 'bloqueado'], true)) {
+                return back()->withErrors([
+                    'general' => 'No puedes cambiar tu propio estado a inactivo o bloqueado.',
+                ]);
+            }
+        }
+
+        $usuario->update([
+            'est_usu' => $request->est_usu,
+        ]);
+
+        return back()->with('success', 'Estado actualizado correctamente.');
     }
 }

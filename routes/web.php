@@ -39,6 +39,8 @@ Route::middleware(['auth', 'check.estado'])->group(function () {
 
     Route::get('/usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
     Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
+    Route::patch('/usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])
+    ->name('usuarios.cambiar-estado');
 });
 
 require __DIR__ . '/auth.php';

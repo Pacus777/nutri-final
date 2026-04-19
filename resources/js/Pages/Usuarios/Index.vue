@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 
 const props = defineProps({
     usuarios: {
@@ -8,6 +8,12 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const cambiarEstado = (codUsuario, estado) => {
+    router.patch(route('usuarios.cambiar-estado', codUsuario), {
+        est_usu: estado,
+    });
+};
 
 const page = usePage();
 </script>
@@ -82,12 +88,40 @@ const page = usePage();
                                             </span>
                                         </td>
                                         <td class="border px-4 py-2">
-                                            <Link
-                                                :href="route('usuarios.edit', usuario.cod_usuarios)"
-                                                class="text-indigo-600 hover:underline"
-                                            >
-                                                Editar
-                                            </Link>
+                                            <div class="flex flex-col gap-2">
+                                                <Link
+                                                    :href="route('usuarios.edit', usuario.cod_usuarios)"
+                                                    class="text-indigo-600 hover:underline"
+                                                >
+                                                    Editar
+                                                </Link>
+
+                                                <div class="flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        class="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+                                                        @click="cambiarEstado(usuario.cod_usuarios, 'activo')"
+                                                    >
+                                                        Activar
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        class="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
+                                                        @click="cambiarEstado(usuario.cod_usuarios, 'inactivo')"
+                                                    >
+                                                        Inactivar
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        class="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                                                        @click="cambiarEstado(usuario.cod_usuarios, 'bloqueado')"
+                                                    >
+                                                        Bloquear
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
