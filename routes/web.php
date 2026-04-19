@@ -36,6 +36,9 @@ Route::middleware(['auth', 'check.estado'])->group(function () {
         Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
         Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
     });
+
+    Route::get('/usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
+    Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
 });
 
 require __DIR__ . '/auth.php';

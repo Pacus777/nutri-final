@@ -8,6 +8,7 @@ use App\Models\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Requests\UpdateUsuarioRequest;
 
 class UsuarioController extends Controller
 {
@@ -60,5 +61,43 @@ class UsuarioController extends Controller
         return redirect()
             ->route('usuarios.index')
             ->with('success', 'Usuario creado correctamente.');
+    }
+
+    public function edit(Usuario $usuario): Response
+    {
+        $roles = Rol::orderBy('nom_rol')->get(['cod_roles', 'nom_rol']);
+
+        return Inertia::render('Usuarios/Edit', [
+            'usuario' => [
+                'cod_usuarios' => $usuario->cod_usuarios,
+                'nom_usu' => $usuario->nom_usu,
+                'cor_usu' => $usuario->cor_usu,
+                'est_usu' => $usuario->est_usu,
+                'roles' => $usuario->roles->pluck('cod_roles'),
+            ],
+            'roles' => $roles,
+            'estados' => ['activo', 'inactivo', 'bloqueado'],
+        ]);
+    }
+
+    public function update(UpdateUsuarioRequest $request, Usuario $usuario): RedirectResponse
+    {
+        $usuario->update([
+            'nom_usu' => $request->nom_usu,
+            'cor_usu' => $request->cor_usu,
+            'est_usu' => $request->est_usu,
+        ]);
+
+        if ($request->filled('cla_usu')) {
+            $usuario->update([
+                'cla_usu' => $request->cla_usu,
+            ]);
+        }
+
+        $usuario->roles()->sync($request->roles);
+
+        return redirect()
+            ->route('usuarios.index')
+            ->with('success', 'Usuario actualizado correctamente.');
     }
 }

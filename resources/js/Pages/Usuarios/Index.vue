@@ -55,6 +55,7 @@ const page = usePage();
                                         <th class="border px-4 py-2 text-left">Correo</th>
                                         <th class="border px-4 py-2 text-left">Estado</th>
                                         <th class="border px-4 py-2 text-left">Roles</th>
+                                        <th class="border px-4 py-2 text-left">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -79,6 +80,14 @@ const page = usePage();
                                             <span v-else class="text-red-600">
                                                 Sin roles
                                             </span>
+                                        </td>
+                                        <td class="border px-4 py-2">
+                                            <Link
+                                                :href="route('usuarios.edit', usuario.cod_usuarios)"
+                                                class="text-indigo-600 hover:underline"
+                                            >
+                                                Editar
+                                            </Link>
                                         </td>
                                     </tr>
                                 </tbody>
