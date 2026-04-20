@@ -17,7 +17,7 @@ class UpdateUsuarioRequest extends FormRequest
         $usuario = $this->route('usuario');
         $usuarioId = is_object($usuario) ? $usuario->cod_usuarios : $usuario;
 
-        return [
+        $rules = [
             'nom_usu' => ['required', 'string', 'max:120'],
             'cor_usu' => [
                 'required',
@@ -31,6 +31,22 @@ class UpdateUsuarioRequest extends FormRequest
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['integer', 'exists:roles,cod_roles'],
         ];
+
+        if ($this->boolean('tiene_perfil_nutricionista')) {
+            $rules['esp_nut'] = ['nullable', 'string', 'max:100'];
+            $rules['est_nut'] = ['required', Rule::in(['activo', 'inactivo'])];
+        }
+
+        if ($this->boolean('tiene_perfil_paciente')) {
+            $rules['fec_pac'] = ['required', 'date'];
+            $rules['eda_pac'] = ['required', 'integer', 'min:1'];
+            $rules['sex_pac'] = ['required', Rule::in(['masculino', 'femenino', 'otro'])];
+            $rules['pes_pac'] = ['required', 'numeric', 'gt:0'];
+            $rules['tal_pac'] = ['required', 'numeric', 'gt:0'];
+            $rules['est_pac'] = ['required', Rule::in(['activo', 'inactivo'])];
+        }
+
+        return $rules;
     }
 
     public function messages(): array
@@ -42,10 +58,18 @@ class UpdateUsuarioRequest extends FormRequest
             'cor_usu.unique' => 'Este correo ya está registrado.',
             'cla_usu.confirmed' => 'La confirmación de contraseña no coincide.',
             'cla_usu.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'est_usu.required' => 'El estado es obligatorio.',
+            'est_usu.required' => 'El estado del usuario es obligatorio.',
             'roles.required' => 'Debes asignar al menos un rol.',
             'roles.min' => 'Debes asignar al menos un rol.',
-            'roles.*.exists' => 'Uno de los roles seleccionados no existe.',
+            'esp_nut.max' => 'La especialidad no debe superar los 100 caracteres.',
+            'fec_pac.required' => 'La fecha de registro del paciente es obligatoria.',
+            'eda_pac.required' => 'La edad es obligatoria.',
+            'eda_pac.min' => 'La edad debe ser mayor que cero.',
+            'sex_pac.required' => 'El sexo es obligatorio.',
+            'pes_pac.required' => 'El peso es obligatorio.',
+            'pes_pac.gt' => 'El peso debe ser mayor que cero.',
+            'tal_pac.required' => 'La talla es obligatoria.',
+            'tal_pac.gt' => 'La talla debe ser mayor que cero.',
         ];
     }
 }

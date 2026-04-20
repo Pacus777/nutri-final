@@ -91,14 +91,31 @@ class UsuarioController extends Controller
     {
         $roles = Rol::orderBy('nom_rol')->get(['cod_roles', 'nom_rol']);
 
+        $usuario->load(['roles', 'nutricionista', 'paciente']);
+
         return Inertia::render('Usuarios/Edit', [
             'usuario' => [
                 'cod_usuarios' => $usuario->cod_usuarios,
                 'nom_usu' => $usuario->nom_usu,
                 'cor_usu' => $usuario->cor_usu,
                 'est_usu' => $usuario->est_usu,
-                'roles' => $usuario->roles->pluck('cod_roles'),
+                'roles' => $usuario->roles->pluck('cod_roles')->map(fn ($id) => (int) $id)->values(),
                 'tiene_perfil_nutricionista' => $usuario->nutricionista !== null,
+                'tiene_perfil_paciente' => $usuario->paciente !== null,
+
+                'nutricionista' => $usuario->nutricionista ? [
+                    'esp_nut' => $usuario->nutricionista->esp_nut,
+                    'est_nut' => $usuario->nutricionista->est_nut,
+                ] : null,
+
+                'paciente' => $usuario->paciente ? [
+                    'fec_pac' => $usuario->paciente->fec_pac,
+                    'eda_pac' => $usuario->paciente->eda_pac,
+                    'sex_pac' => $usuario->paciente->sex_pac,
+                    'pes_pac' => $usuario->paciente->pes_pac,
+                    'tal_pac' => $usuario->paciente->tal_pac,
+                    'est_pac' => $usuario->paciente->est_pac,
+                ] : null,
             ],
             'roles' => $roles,
             'estados' => ['activo', 'inactivo', 'bloqueado'],
@@ -123,7 +140,7 @@ class UsuarioController extends Controller
                 ])->withInput();
             }
 
-            $rolSuperAdmin = \App\Models\Rol::where('nom_rol', 'SuperAdmin')->first();
+            $rolSuperAdmin = Rol::where('nom_rol', 'SuperAdmin')->first();
 
             if ($rolSuperAdmin && $usuarioAutenticado->tieneRol('SuperAdmin')) {
                 $mantieneSuperAdmin = $rolesSeleccionados->contains((int) $rolSuperAdmin->cod_roles);
@@ -137,6 +154,7 @@ class UsuarioController extends Controller
         }
 
         $rolNutricionista = Rol::where('nom_rol', 'Nutricionista')->first();
+        $rolPaciente = Rol::where('nom_rol', 'Paciente')->first();
 
         if ($usuario->nutricionista && $rolNutricionista) {
             $mantieneRolNutricionista = $rolesSeleccionados->contains((int) $rolNutricionista->cod_roles);
@@ -144,6 +162,16 @@ class UsuarioController extends Controller
             if (! $mantieneRolNutricionista) {
                 return back()->withErrors([
                     'roles' => 'No puedes quitar el rol Nutricionista a un usuario que ya tiene perfil de nutricionista registrado.',
+                ])->withInput();
+            }
+        }
+
+        if ($usuario->paciente && $rolPaciente) {
+            $mantieneRolPaciente = $rolesSeleccionados->contains((int) $rolPaciente->cod_roles);
+
+            if (! $mantieneRolPaciente) {
+                return back()->withErrors([
+                    'roles' => 'No puedes quitar el rol Paciente a un usuario que ya tiene perfil de paciente registrado.',
                 ])->withInput();
             }
         }
@@ -161,6 +189,24 @@ class UsuarioController extends Controller
         }
 
         $usuario->roles()->sync($rolesSeleccionados->all());
+
+        if ($usuario->nutricionista) {
+            $usuario->nutricionista->update([
+                'esp_nut' => $request->esp_nut,
+                'est_nut' => $request->est_nut,
+            ]);
+        }
+
+        if ($usuario->paciente) {
+            $usuario->paciente->update([
+                'fec_pac' => $request->fec_pac,
+                'eda_pac' => $request->eda_pac,
+                'sex_pac' => $request->sex_pac,
+                'pes_pac' => $request->pes_pac,
+                'tal_pac' => $request->tal_pac,
+                'est_pac' => $request->est_pac,
+            ]);
+        }
 
         return redirect()
             ->route('usuarios.index')
