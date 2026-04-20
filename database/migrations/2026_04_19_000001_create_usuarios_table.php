@@ -24,7 +24,7 @@ return new class extends Migration
             // CAMPO: Estado Usuario
             $table->string('est_usu', 20);
 
-            $table->rememberToken()->after('est_usu');
+            $table->rememberToken();
 
             $table->timestamps();
         });

@@ -27,6 +27,10 @@ const puedeVerPanelSuperadmin = computed(() =>
     rolActivo.value === 'SuperAdmin'
 );
 
+const puedeVerNutricionistas = computed(() =>
+    ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
+);
+
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -74,6 +78,17 @@ const showingNavigationDropdown = ref(false);
                                     :active="route().current('panel.superadmin')"
                                 >
                                     Panel SuperAdmin
+                                </NavLink>
+
+                                <NavLink
+                                    v-if="puedeVerNutricionistas"
+                                    :href="route('nutricionistas.index')"
+                                    :active="route().current('nutricionistas.index')
+                                        || route().current('nutricionistas.create')
+                                        || route().current('nutricionistas.edit')
+                                        || route().current('nutricionistas.show')"
+                                >
+                                    Nutricionistas
                                 </NavLink>
                             </div>
                         </div>
@@ -209,6 +224,17 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('panel.superadmin')"
                         >
                             Panel SuperAdmin
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            v-if="puedeVerNutricionistas"
+                            :href="route('nutricionistas.index')"
+                            :active="route().current('nutricionistas.index')
+                                || route().current('nutricionistas.create')
+                                || route().current('nutricionistas.edit')
+                                || route().current('nutricionistas.show')"
+                        >
+                            Nutricionistas
                         </ResponsiveNavLink>
                     </div>
 

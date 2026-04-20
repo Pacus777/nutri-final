@@ -90,4 +90,9 @@ class Usuario extends Authenticatable
     {
         return $this->roles->contains('nom_rol', $rol);
     }
+
+    public function nutricionista()
+    {
+        return $this->hasOne(Nutricionista::class, 'cod_usuarios_nut', 'cod_usuarios');
+    }
 }

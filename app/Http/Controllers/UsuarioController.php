@@ -74,6 +74,7 @@ class UsuarioController extends Controller
                 'cor_usu' => $usuario->cor_usu,
                 'est_usu' => $usuario->est_usu,
                 'roles' => $usuario->roles->pluck('cod_roles'),
+                'tiene_perfil_nutricionista' => $usuario->nutricionista !== null,
             ],
             'roles' => $roles,
             'estados' => ['activo', 'inactivo', 'bloqueado'],
@@ -108,6 +109,18 @@ class UsuarioController extends Controller
                         'roles' => 'No puedes quitarte a ti mismo el rol SuperAdmin.',
                     ])->withInput();
                 }
+            }
+        }
+
+        $rolNutricionista = Rol::where('nom_rol', 'Nutricionista')->first();
+
+        if ($usuario->nutricionista && $rolNutricionista) {
+            $mantieneRolNutricionista = $rolesSeleccionados->contains((int) $rolNutricionista->cod_roles);
+
+            if (! $mantieneRolNutricionista) {
+                return back()->withErrors([
+                    'roles' => 'No puedes quitar el rol Nutricionista a un usuario que ya tiene perfil de nutricionista registrado.',
+                ])->withInput();
             }
         }
 

@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolActivoController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\Administracion\NutricionistaController;
+
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -61,7 +63,18 @@ Route::middleware(['auth', 'check.estado', 'verificar.rol.activo'])->group(funct
         Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
         Route::patch('/usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])
             ->name('usuarios.cambiar-estado');
-    });
+
+            Route::get('/nutricionistas', [NutricionistaController::class, 'index'])->name('nutricionistas.index');
+            Route::get('/nutricionistas/crear', [NutricionistaController::class, 'create'])->name('nutricionistas.create');
+            Route::post('/nutricionistas', [NutricionistaController::class, 'store'])->name('nutricionistas.store');
+            Route::get('/nutricionistas/{nutricionista}', [NutricionistaController::class, 'show'])->name('nutricionistas.show');
+            Route::get('/nutricionistas/{nutricionista}/editar', [NutricionistaController::class, 'edit'])->name('nutricionistas.edit');
+            Route::put('/nutricionistas/{nutricionista}', [NutricionistaController::class, 'update'])->name('nutricionistas.update');
+            Route::patch('/nutricionistas/{nutricionista}/estado', [NutricionistaController::class, 'cambiarEstado'])->name('nutricionistas.cambiar-estado');
+        });
+
+
+
 });
 
 require __DIR__ . '/auth.php';
