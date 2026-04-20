@@ -5,6 +5,17 @@ import { Head, Link } from '@inertiajs/vue3';
 defineProps({
     nutricionista: Object,
 });
+
+const nombreCompleto = (usuario) => {
+    if (!usuario) return 'No disponible';
+
+    if (usuario.nombre_completo) {
+        return usuario.nombre_completo;
+    }
+
+    const nombre = `${usuario.nom_usu ?? ''} ${usuario.ape_usu ?? ''}`.trim();
+    return nombre || 'No disponible';
+};
 </script>
 
 <template>
@@ -36,7 +47,7 @@ defineProps({
         </template>
 
         <div class="py-8">
-            <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-gray-800">
@@ -56,6 +67,10 @@ defineProps({
                                 <strong>Estado del perfil:</strong>
                                 {{ nutricionista.est_nut }}
                             </p>
+                            <p>
+                                <strong>Fecha de registro:</strong>
+                                {{ nutricionista.fecha_registro || 'No disponible' }}
+                            </p>
                         </div>
                     </div>
 
@@ -64,10 +79,32 @@ defineProps({
                             Usuario vinculado
                         </h3>
 
+                        <div
+                            v-if="nutricionista.usuario?.fot_usu"
+                            class="mb-4"
+                        >
+                            <img
+                                :src="`/storage/${nutricionista.usuario.fot_usu}`"
+                                alt="Foto de nutricionista"
+                                class="h-28 w-28 rounded object-cover border"
+                            />
+                        </div>
+
                         <div class="mt-4 space-y-3 text-sm text-gray-700">
                             <p>
-                                <strong>Nombre:</strong>
-                                {{ nutricionista.usuario?.nom_usu ?? 'No disponible' }}
+                                <strong>Nombre completo:</strong>
+                                {{ nombreCompleto(nutricionista.usuario) }}
+                            </p>
+                            <p>
+                                <strong>CI:</strong>
+                                <span v-if="nutricionista.usuario?.ci_usu">
+                                    {{ nutricionista.usuario.ci_usu }} {{ nutricionista.usuario.ext_ci_usu }}
+                                </span>
+                                <span v-else>No disponible</span>
+                            </p>
+                            <p>
+                                <strong>Fecha de nacimiento:</strong>
+                                {{ nutricionista.usuario?.fec_nac_usu ?? 'No disponible' }}
                             </p>
                             <p>
                                 <strong>Correo:</strong>

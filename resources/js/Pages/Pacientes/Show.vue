@@ -5,6 +5,17 @@ import { Head, Link } from '@inertiajs/vue3';
 defineProps({
     paciente: Object,
 });
+
+const nombreCompleto = (usuario) => {
+    if (!usuario) return 'No disponible';
+
+    if (usuario.nombre_completo) {
+        return usuario.nombre_completo;
+    }
+
+    const nombre = `${usuario.nom_usu ?? ''} ${usuario.ape_usu ?? ''}`.trim();
+    return nombre || 'No disponible';
+};
 </script>
 
 <template>
@@ -36,7 +47,7 @@ defineProps({
         </template>
 
         <div class="py-8">
-            <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
                         <h3 class="text-lg font-semibold text-gray-800">
@@ -45,12 +56,13 @@ defineProps({
 
                         <div class="mt-4 space-y-3 text-sm text-gray-700">
                             <p><strong>Código:</strong> {{ paciente.cod_pacientes }}</p>
-                            <p><strong>Fecha de registro:</strong> {{ paciente.fec_pac }}</p>
-                            <p><strong>Edad:</strong> {{ paciente.eda_pac }}</p>
                             <p><strong>Sexo:</strong> {{ paciente.sex_pac }}</p>
                             <p><strong>Peso:</strong> {{ paciente.pes_pac }}</p>
-                            <p><strong>Talla:</strong> {{ paciente.tal_pac }}</p>
+                            <p><strong>Estatura:</strong> {{ paciente.estatura_pac }}</p>
+                            <p><strong>Tipo de sangre:</strong> {{ paciente.tip_san_pac || 'No especificado' }}</p>
+                            <p><strong>Alergias:</strong> {{ paciente.ale_pac || 'No registradas' }}</p>
                             <p><strong>Estado del perfil:</strong> {{ paciente.est_pac }}</p>
+                            <p><strong>Fecha de registro:</strong> {{ paciente.fecha_registro || 'No disponible' }}</p>
                         </div>
                     </div>
 
@@ -59,8 +71,27 @@ defineProps({
                             Usuario vinculado
                         </h3>
 
+                        <div
+                            v-if="paciente.usuario?.fot_usu"
+                            class="mb-4"
+                        >
+                            <img
+                                :src="`/storage/${paciente.usuario.fot_usu}`"
+                                alt="Foto de paciente"
+                                class="h-28 w-28 rounded object-cover border"
+                            />
+                        </div>
+
                         <div class="mt-4 space-y-3 text-sm text-gray-700">
-                            <p><strong>Nombre:</strong> {{ paciente.usuario?.nom_usu ?? 'No disponible' }}</p>
+                            <p><strong>Nombre completo:</strong> {{ nombreCompleto(paciente.usuario) }}</p>
+                            <p>
+                                <strong>CI:</strong>
+                                <span v-if="paciente.usuario?.ci_usu">
+                                    {{ paciente.usuario.ci_usu }} {{ paciente.usuario.ext_ci_usu }}
+                                </span>
+                                <span v-else>No disponible</span>
+                            </p>
+                            <p><strong>Fecha de nacimiento:</strong> {{ paciente.usuario?.fec_nac_usu ?? 'No disponible' }}</p>
                             <p><strong>Correo:</strong> {{ paciente.usuario?.cor_usu ?? 'No disponible' }}</p>
                             <p><strong>Estado de usuario:</strong> {{ paciente.usuario?.est_usu ?? 'No disponible' }}</p>
 
