@@ -5,12 +5,9 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
-    roles: {
-        type: Array,
-        default: () => [],
-    },
     estados: {
         type: Array,
         default: () => [],
@@ -23,20 +20,26 @@ const form = useForm({
     cla_usu: '',
     cla_usu_confirmation: '',
     est_usu: 'activo',
-    roles: [],
+    tipo_registro: 'Administrador',
+
+    // Nutricionista
+    esp_nut: '',
+    est_nut: 'activo',
+
+    // Paciente
+    fec_pac: '',
+    eda_pac: '',
+    sex_pac: '',
+    pes_pac: '',
+    tal_pac: '',
+    est_pac: 'activo',
 });
+
+const esNutricionista = computed(() => form.tipo_registro === 'Nutricionista');
+const esPaciente = computed(() => form.tipo_registro === 'Paciente');
 
 const submit = () => {
     form.post(route('usuarios.store'));
-};
-
-const toggleRol = (codRol) => {
-    if (form.roles.includes(codRol)) {
-        form.roles = form.roles.filter((id) => id !== codRol);
-        return;
-    }
-
-    form.roles.push(codRol);
 };
 </script>
 
@@ -47,7 +50,7 @@ const toggleRol = (codRol) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Crear Usuario
+                    Crear Registro
                 </h2>
 
                 <Link
@@ -64,6 +67,20 @@ const toggleRol = (codRol) => {
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <form @submit.prevent="submit" class="space-y-6">
+                            <div>
+                                <InputLabel for="tipo_registro" value="Tipo de registro" />
+                                <select
+                                    id="tipo_registro"
+                                    v-model="form.tipo_registro"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Nutricionista">Nutricionista</option>
+                                    <option value="Paciente">Paciente</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.tipo_registro" />
+                            </div>
+
                             <div>
                                 <InputLabel for="nom_usu" value="Nombre completo" />
                                 <TextInput
@@ -114,7 +131,7 @@ const toggleRol = (codRol) => {
                             </div>
 
                             <div>
-                                <InputLabel for="est_usu" value="Estado" />
+                                <InputLabel for="est_usu" value="Estado del usuario" />
                                 <select
                                     id="est_usu"
                                     v-model="form.est_usu"
@@ -131,29 +148,132 @@ const toggleRol = (codRol) => {
                                 <InputError class="mt-2" :message="form.errors.est_usu" />
                             </div>
 
-                            <div>
-                                <InputLabel value="Roles" />
-                                <div class="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
-                                    <label
-                                        v-for="rol in roles"
-                                        :key="rol.cod_roles"
-                                        class="flex items-center gap-3 rounded border border-gray-200 px-4 py-3"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            :value="rol.cod_roles"
-                                            :checked="form.roles.includes(rol.cod_roles)"
-                                            @change="toggleRol(rol.cod_roles)"
-                                        />
-                                        <span>{{ rol.nom_rol }}</span>
-                                    </label>
+                            <div
+                                v-if="esNutricionista"
+                                class="space-y-6 rounded border border-blue-200 bg-blue-50 p-4"
+                            >
+                                <h3 class="text-lg font-semibold text-blue-800">
+                                    Datos del perfil de nutricionista
+                                </h3>
+
+                                <div>
+                                    <InputLabel for="esp_nut" value="Especialidad" />
+                                    <TextInput
+                                        id="esp_nut"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.esp_nut"
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.esp_nut" />
                                 </div>
-                                <InputError class="mt-2" :message="form.errors.roles" />
+
+                                <div>
+                                    <InputLabel for="est_nut" value="Estado del perfil" />
+                                    <select
+                                        id="est_nut"
+                                        v-model="form.est_nut"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    >
+                                        <option value="activo">activo</option>
+                                        <option value="inactivo">inactivo</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.est_nut" />
+                                </div>
+                            </div>
+
+                            <div
+                                v-if="esPaciente"
+                                class="space-y-6 rounded border border-green-200 bg-green-50 p-4"
+                            >
+                                <h3 class="text-lg font-semibold text-green-800">
+                                    Datos del perfil de paciente
+                                </h3>
+
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    <div>
+                                        <InputLabel for="fec_pac" value="Fecha de registro" />
+                                        <input
+                                            id="fec_pac"
+                                            type="date"
+                                            v-model="form.fec_pac"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        />
+                                        <InputError class="mt-2" :message="form.errors.fec_pac" />
+                                    </div>
+
+                                    <div>
+                                        <InputLabel for="eda_pac" value="Edad" />
+                                        <input
+                                            id="eda_pac"
+                                            type="number"
+                                            min="1"
+                                            v-model="form.eda_pac"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        />
+                                        <InputError class="mt-2" :message="form.errors.eda_pac" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <InputLabel for="sex_pac" value="Sexo" />
+                                    <select
+                                        id="sex_pac"
+                                        v-model="form.sex_pac"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    >
+                                        <option value="">Seleccione una opción</option>
+                                        <option value="masculino">masculino</option>
+                                        <option value="femenino">femenino</option>
+                                        <option value="otro">otro</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.sex_pac" />
+                                </div>
+
+                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    <div>
+                                        <InputLabel for="pes_pac" value="Peso" />
+                                        <input
+                                            id="pes_pac"
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            v-model="form.pes_pac"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        />
+                                        <InputError class="mt-2" :message="form.errors.pes_pac" />
+                                    </div>
+
+                                    <div>
+                                        <InputLabel for="tal_pac" value="Talla" />
+                                        <input
+                                            id="tal_pac"
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            v-model="form.tal_pac"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        />
+                                        <InputError class="mt-2" :message="form.errors.tal_pac" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <InputLabel for="est_pac" value="Estado del perfil" />
+                                    <select
+                                        id="est_pac"
+                                        v-model="form.est_pac"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    >
+                                        <option value="activo">activo</option>
+                                        <option value="inactivo">inactivo</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.est_pac" />
+                                </div>
                             </div>
 
                             <div class="flex justify-end">
                                 <PrimaryButton :disabled="form.processing">
-                                    Guardar usuario
+                                    Guardar registro
                                 </PrimaryButton>
                             </div>
                         </form>

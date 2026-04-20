@@ -56,11 +56,35 @@ class UsuarioController extends Controller
             'est_usu' => $request->est_usu,
         ]);
 
-        $usuario->roles()->sync($request->roles);
+        $rol = Rol::where('nom_rol', $request->tipo_registro)->first();
+
+        if ($rol) {
+            $usuario->roles()->sync([$rol->cod_roles]);
+        }
+
+        if ($request->tipo_registro === 'Nutricionista') {
+            \App\Models\Nutricionista::create([
+                'cod_usuarios_nut' => $usuario->cod_usuarios,
+                'esp_nut' => $request->esp_nut,
+                'est_nut' => $request->est_nut,
+            ]);
+        }
+
+        if ($request->tipo_registro === 'Paciente') {
+            \App\Models\Paciente::create([
+                'cod_usuarios_pac' => $usuario->cod_usuarios,
+                'fec_pac' => $request->fec_pac,
+                'eda_pac' => $request->eda_pac,
+                'sex_pac' => $request->sex_pac,
+                'pes_pac' => $request->pes_pac,
+                'tal_pac' => $request->tal_pac,
+                'est_pac' => $request->est_pac,
+            ]);
+        }
 
         return redirect()
             ->route('usuarios.index')
-            ->with('success', 'Usuario creado correctamente.');
+            ->with('success', 'Registro creado correctamente.');
     }
 
     public function edit(Usuario $usuario): Response
