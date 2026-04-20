@@ -31,6 +31,10 @@ const puedeVerNutricionistas = computed(() =>
     ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
 );
 
+const puedeVerPacientes = computed(() =>
+    ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
+);
+
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -89,6 +93,17 @@ const showingNavigationDropdown = ref(false);
                                         || route().current('nutricionistas.show')"
                                 >
                                     Nutricionistas
+                                </NavLink>
+
+                                <NavLink
+                                    v-if="puedeVerPacientes"
+                                    :href="route('pacientes.index')"
+                                    :active="route().current('pacientes.index')
+                                        || route().current('pacientes.create')
+                                        || route().current('pacientes.edit')
+                                        || route().current('pacientes.show')"
+                                >
+                                    Pacientes
                                 </NavLink>
                             </div>
                         </div>
@@ -235,6 +250,17 @@ const showingNavigationDropdown = ref(false);
                                 || route().current('nutricionistas.show')"
                         >
                             Nutricionistas
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            v-if="puedeVerPacientes"
+                            :href="route('pacientes.index')"
+                            :active="route().current('pacientes.index')
+                                || route().current('pacientes.create')
+                                || route().current('pacientes.edit')
+                                || route().current('pacientes.show')"
+                        >
+                            Pacientes
                         </ResponsiveNavLink>
                     </div>
 

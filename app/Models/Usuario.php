@@ -95,4 +95,9 @@ class Usuario extends Authenticatable
     {
         return $this->hasOne(Nutricionista::class, 'cod_usuarios_nut', 'cod_usuarios');
     }
+
+    public function paciente()
+    {
+        return $this->hasOne(Paciente::class, 'cod_usuarios_pac', 'cod_usuarios');
+    }
 }
