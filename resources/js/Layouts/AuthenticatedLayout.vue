@@ -1,26 +1,43 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const usuario = computed(() => page.props.auth?.user ?? null);
+const rolActivo = computed(() => page.props.auth?.rol_activo ?? null);
+const rolesDisponibles = computed(() => page.props.auth?.roles_disponibles ?? []);
+
+const cambiarRol = (codRol) => {
+    router.post(route('roles.cambiar'), {
+        cod_rol: codRol,
+    }, {
+        preserveScroll: true,
+    });
+};
 
 const showingNavigationDropdown = ref(false);
 </script>
 
 <template>
     <div>
+        <div
+            v-if="page.props.flash?.success"
+            class="mx-auto mt-4 max-w-7xl rounded border border-green-200 bg-green-50 px-4 py-3 text-green-700 sm:px-6 lg:px-8"
+        >
+            {{ page.props.flash.success }}
+        </div>
+
         <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
-                <!-- Primary Navigation Menu -->
+            <nav class="border-b border-gray-100 bg-white">
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
                         <div class="flex">
-                            <!-- Logo -->
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('dashboard')">
                                     <ApplicationLogo
@@ -29,10 +46,7 @@ const showingNavigationDropdown = ref(false);
                                 </Link>
                             </div>
 
-                            <!-- Navigation Links -->
-                            <div
-                                class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
-                            >
+                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                                 <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
@@ -42,8 +56,28 @@ const showingNavigationDropdown = ref(false);
                             </div>
                         </div>
 
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
-                            <!-- Settings Dropdown -->
+                        <div class="hidden sm:ms-6 sm:flex sm:items-center gap-4">
+                            <div class="text-sm text-gray-600">
+                                <span class="font-semibold">Rol activo:</span>
+                                <span class="ml-1">{{ rolActivo ?? 'Sin rol activo' }}</span>
+                            </div>
+
+                            <div v-if="rolesDisponibles.length > 1">
+                                <select
+                                    class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    :value="page.props.auth?.cod_rol_activo ?? ''"
+                                    @change="cambiarRol(Number($event.target.value))"
+                                >
+                                    <option
+                                        v-for="rol in rolesDisponibles"
+                                        :key="rol.cod_roles"
+                                        :value="rol.cod_roles"
+                                    >
+                                        {{ rol.nom_rol }}
+                                    </option>
+                                </select>
+                            </div>
+
                             <div class="relative ms-3">
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
@@ -52,7 +86,7 @@ const showingNavigationDropdown = ref(false);
                                                 type="button"
                                                 class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
-                                                {{ $page.props.auth.user.name }}
+                                                {{ usuario?.nom_usu }}
 
                                                 <svg
                                                     class="-me-0.5 ms-2 h-4 w-4"
@@ -71,30 +105,25 @@ const showingNavigationDropdown = ref(false);
                                     </template>
 
                                     <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Profile
+                                        <DropdownLink :href="route('profile.edit')">
+                                            Perfil
                                         </DropdownLink>
+
                                         <DropdownLink
                                             :href="route('logout')"
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar sesión
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
                         </div>
 
-                        <!-- Hamburger -->
                         <div class="-me-2 flex items-center sm:hidden">
                             <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
+                                @click="showingNavigationDropdown = !showingNavigationDropdown"
                                 class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
                             >
                                 <svg
@@ -106,8 +135,7 @@ const showingNavigationDropdown = ref(false);
                                     <path
                                         :class="{
                                             hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
+                                            'inline-flex': !showingNavigationDropdown,
                                         }"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -117,8 +145,7 @@ const showingNavigationDropdown = ref(false);
                                     <path
                                         :class="{
                                             hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
+                                            'inline-flex': showingNavigationDropdown,
                                         }"
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -131,7 +158,6 @@ const showingNavigationDropdown = ref(false);
                     </div>
                 </div>
 
-                <!-- Responsive Navigation Menu -->
                 <div
                     :class="{
                         block: showingNavigationDropdown,
@@ -148,48 +174,59 @@ const showingNavigationDropdown = ref(false);
                         </ResponsiveNavLink>
                     </div>
 
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
+                    <div class="border-t border-gray-200 pb-1 pt-4">
                         <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
-                                {{ $page.props.auth.user.name }}
+                            <div class="text-base font-medium text-gray-800">
+                                {{ usuario?.nom_usu }}
                             </div>
                             <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.auth.user.email }}
+                                {{ usuario?.cor_usu }}
                             </div>
+                            <div class="mt-2 text-sm text-gray-600">
+                                <span class="font-semibold">Rol activo:</span>
+                                <span class="ml-1">{{ rolActivo ?? 'Sin rol activo' }}</span>
+                            </div>
+                        </div>
+
+                        <div v-if="rolesDisponibles.length > 1" class="mt-3 px-4">
+                            <select
+                                class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                :value="page.props.auth?.cod_rol_activo ?? ''"
+                                @change="cambiarRol(Number($event.target.value))"
+                            >
+                                <option
+                                    v-for="rol in rolesDisponibles"
+                                    :key="rol.cod_roles"
+                                    :value="rol.cod_roles"
+                                >
+                                    {{ rol.nom_rol }}
+                                </option>
+                            </select>
                         </div>
 
                         <div class="mt-3 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
+                                Perfil
                             </ResponsiveNavLink>
+
                             <ResponsiveNavLink
                                 :href="route('logout')"
                                 method="post"
                                 as="button"
                             >
-                                Log Out
+                                Cerrar sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
+            <header class="bg-white shadow" v-if="$slots.header">
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
             </header>
 
-            <!-- Page Content -->
             <main>
                 <slot />
             </main>
