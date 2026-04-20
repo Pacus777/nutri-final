@@ -20,6 +20,11 @@ class Usuario extends Authenticatable
 
     protected $fillable = [
         'nom_usu',
+        'ape_usu',
+        'ci_usu',
+        'ext_ci_usu',
+        'fec_nac_usu',
+        'fot_usu',
         'cor_usu',
         'cla_usu',
         'est_usu',
@@ -34,11 +39,15 @@ class Usuario extends Authenticatable
     {
         return [
             'cla_usu' => 'hashed',
+            'fec_nac_usu' => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
     }
 
+    /**
+     * Laravel usa este campo como contraseña autenticable.
+     */
     public function getAuthPassword(): string
     {
         return $this->cla_usu;
@@ -54,6 +63,17 @@ class Usuario extends Authenticatable
         return $this->cor_usu;
     }
 
+    /**
+     * Nombre completo del usuario.
+     */
+    public function getNombreCompletoAttribute(): string
+    {
+        return trim($this->nom_usu . ' ' . $this->ape_usu);
+    }
+
+    /**
+     * Relación con roles.
+     */
     public function roles()
     {
         return $this->belongsToMany(
@@ -69,6 +89,16 @@ class Usuario extends Authenticatable
     public function usuarioRoles()
     {
         return $this->hasMany(UsuarioRol::class, 'cod_usuarios_url', 'cod_usuarios');
+    }
+
+    public function nutricionista()
+    {
+        return $this->hasOne(Nutricionista::class, 'cod_usuarios_nut', 'cod_usuarios');
+    }
+
+    public function paciente()
+    {
+        return $this->hasOne(Paciente::class, 'cod_usuarios_pac', 'cod_usuarios');
     }
 
     public function estaActivo(): bool
@@ -89,15 +119,5 @@ class Usuario extends Authenticatable
     public function tieneRol(string $rol): bool
     {
         return $this->roles->contains('nom_rol', $rol);
-    }
-
-    public function nutricionista()
-    {
-        return $this->hasOne(Nutricionista::class, 'cod_usuarios_nut', 'cod_usuarios');
-    }
-
-    public function paciente()
-    {
-        return $this->hasOne(Paciente::class, 'cod_usuarios_pac', 'cod_usuarios');
     }
 }

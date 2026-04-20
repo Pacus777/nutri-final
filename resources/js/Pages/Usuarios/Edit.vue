@@ -5,7 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     usuario: Object,
@@ -13,8 +13,17 @@ const props = defineProps({
     estados: Array,
 });
 
+const previewFoto = ref(
+    props.usuario.fot_usu ? `/storage/${props.usuario.fot_usu}` : null
+);
+
 const form = useForm({
     nom_usu: props.usuario.nom_usu,
+    ape_usu: props.usuario.ape_usu,
+    ci_usu: props.usuario.ci_usu,
+    ext_ci_usu: props.usuario.ext_ci_usu,
+    fec_nac_usu: props.usuario.fec_nac_usu,
+    fot_usu: null,
     cor_usu: props.usuario.cor_usu,
     cla_usu: '',
     cla_usu_confirmation: '',
@@ -27,11 +36,11 @@ const form = useForm({
     esp_nut: props.usuario.nutricionista?.esp_nut ?? '',
     est_nut: props.usuario.nutricionista?.est_nut ?? 'activo',
 
-    fec_pac: props.usuario.paciente?.fec_pac ?? '',
-    eda_pac: props.usuario.paciente?.eda_pac ?? '',
     sex_pac: props.usuario.paciente?.sex_pac ?? '',
     pes_pac: props.usuario.paciente?.pes_pac ?? '',
-    tal_pac: props.usuario.paciente?.tal_pac ?? '',
+    estatura_pac: props.usuario.paciente?.estatura_pac ?? '',
+    tip_san_pac: props.usuario.paciente?.tip_san_pac ?? '',
+    ale_pac: props.usuario.paciente?.ale_pac ?? '',
     est_pac: props.usuario.paciente?.est_pac ?? 'activo',
 });
 
@@ -39,7 +48,14 @@ const tienePerfilNutricionista = computed(() => form.tiene_perfil_nutricionista)
 const tienePerfilPaciente = computed(() => form.tiene_perfil_paciente);
 
 const submit = () => {
-    form.put(route('usuarios.update', props.usuario.cod_usuarios));
+    form
+        .transform((data) => ({
+            ...data,
+            _method: 'put',
+        }))
+        .post(route('usuarios.update', props.usuario.cod_usuarios), {
+            forceFormData: true,
+        });
 };
 
 const toggleRol = (codRol) => {
@@ -49,6 +65,15 @@ const toggleRol = (codRol) => {
     }
 
     form.roles.push(codRol);
+};
+
+const handleFile = (event) => {
+    const file = event.target.files[0];
+    form.fot_usu = file ?? null;
+
+    if (file) {
+        previewFoto.value = URL.createObjectURL(file);
+    }
 };
 </script>
 
@@ -72,10 +97,11 @@ const toggleRol = (codRol) => {
         </template>
 
         <div class="py-8">
-            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <form @submit.prevent="submit" class="space-y-6">
+
                             <div
                                 v-if="usuario.tiene_perfil_nutricionista"
                                 class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
@@ -92,18 +118,91 @@ const toggleRol = (codRol) => {
                                 Mientras exista ese perfil, el rol <strong>Paciente</strong> es obligatorio.
                             </div>
 
-                            <div>
-                                <InputLabel for="nom_usu" value="Nombre completo" />
-                                <TextInput
-                                    id="nom_usu"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    v-model="form.nom_usu"
-                                    required
-                                />
-                                <InputError class="mt-2" :message="form.errors.nom_usu" />
+                            <!-- DATOS PERSONALES -->
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <div>
+                                    <InputLabel for="nom_usu" value="Nombres" />
+                                    <TextInput
+                                        id="nom_usu"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.nom_usu"
+                                        required
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.nom_usu" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="ape_usu" value="Apellidos" />
+                                    <TextInput
+                                        id="ape_usu"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.ape_usu"
+                                        required
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.ape_usu" />
+                                </div>
                             </div>
 
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                <div>
+                                    <InputLabel for="ci_usu" value="CI" />
+                                    <TextInput
+                                        id="ci_usu"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.ci_usu"
+                                        required
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.ci_usu" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="ext_ci_usu" value="Extensión CI" />
+                                    <TextInput
+                                        id="ext_ci_usu"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.ext_ci_usu"
+                                        required
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.ext_ci_usu" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="fec_nac_usu" value="Fecha de nacimiento" />
+                                    <input
+                                        id="fec_nac_usu"
+                                        type="date"
+                                        v-model="form.fec_nac_usu"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.fec_nac_usu" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <InputLabel for="fot_usu" value="Foto (opcional)" />
+                                <input
+                                    id="fot_usu"
+                                    type="file"
+                                    @change="handleFile"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError class="mt-2" :message="form.errors.fot_usu" />
+
+                                <div v-if="previewFoto" class="mt-4">
+                                    <p class="mb-2 text-sm text-gray-600">Vista previa:</p>
+                                    <img
+                                        :src="previewFoto"
+                                        alt="Foto de usuario"
+                                        class="h-28 w-28 rounded object-cover border"
+                                    />
+                                </div>
+                            </div>
+
+                            <!-- DATOS DE ACCESO -->
                             <div>
                                 <InputLabel for="cor_usu" value="Correo" />
                                 <TextInput
@@ -159,6 +258,7 @@ const toggleRol = (codRol) => {
                                 <InputError class="mt-2" :message="form.errors.est_usu" />
                             </div>
 
+                            <!-- ROLES -->
                             <div>
                                 <InputLabel value="Roles" />
                                 <div class="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -179,6 +279,7 @@ const toggleRol = (codRol) => {
                                 <InputError class="mt-2" :message="form.errors.roles" />
                             </div>
 
+                            <!-- PERFIL NUTRICIONISTA -->
                             <div
                                 v-if="tienePerfilNutricionista"
                                 class="space-y-6 rounded border border-blue-200 bg-blue-50 p-4"
@@ -212,6 +313,7 @@ const toggleRol = (codRol) => {
                                 </div>
                             </div>
 
+                            <!-- PERFIL PACIENTE -->
                             <div
                                 v-if="tienePerfilPaciente"
                                 class="space-y-6 rounded border border-green-200 bg-green-50 p-4"
@@ -219,31 +321,6 @@ const toggleRol = (codRol) => {
                                 <h3 class="text-lg font-semibold text-green-800">
                                     Datos del perfil de paciente
                                 </h3>
-
-                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div>
-                                        <InputLabel for="fec_pac" value="Fecha de registro" />
-                                        <input
-                                            id="fec_pac"
-                                            type="date"
-                                            v-model="form.fec_pac"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                        <InputError class="mt-2" :message="form.errors.fec_pac" />
-                                    </div>
-
-                                    <div>
-                                        <InputLabel for="eda_pac" value="Edad" />
-                                        <input
-                                            id="eda_pac"
-                                            type="number"
-                                            min="1"
-                                            v-model="form.eda_pac"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                        <InputError class="mt-2" :message="form.errors.eda_pac" />
-                                    </div>
-                                </div>
 
                                 <div>
                                     <InputLabel for="sex_pac" value="Sexo" />
@@ -275,17 +352,39 @@ const toggleRol = (codRol) => {
                                     </div>
 
                                     <div>
-                                        <InputLabel for="tal_pac" value="Talla" />
+                                        <InputLabel for="estatura_pac" value="Estatura" />
                                         <input
-                                            id="tal_pac"
+                                            id="estatura_pac"
                                             type="number"
                                             step="0.01"
                                             min="0.01"
-                                            v-model="form.tal_pac"
+                                            v-model="form.estatura_pac"
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                         />
-                                        <InputError class="mt-2" :message="form.errors.tal_pac" />
+                                        <InputError class="mt-2" :message="form.errors.estatura_pac" />
                                     </div>
+                                </div>
+
+                                <div>
+                                    <InputLabel for="tip_san_pac" value="Tipo de sangre" />
+                                    <TextInput
+                                        id="tip_san_pac"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        v-model="form.tip_san_pac"
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.tip_san_pac" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="ale_pac" value="Alergias" />
+                                    <textarea
+                                        id="ale_pac"
+                                        v-model="form.ale_pac"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        rows="4"
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.ale_pac" />
                                 </div>
 
                                 <div>

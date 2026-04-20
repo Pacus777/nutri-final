@@ -80,6 +80,11 @@ Route::middleware(['auth', 'check.estado', 'verificar.rol.activo'])->group(funct
         Route::put('/nutricionistas/{nutricionista}', [NutricionistaController::class, 'update'])->name('nutricionistas.update');
         Route::patch('/nutricionistas/{nutricionista}/estado', [NutricionistaController::class, 'cambiarEstado'])
             ->name('nutricionistas.cambiar-estado');
+        //Route::get('/nutricionistas/registro-rapido', [NutricionistaController::class, 'registroRapido'])
+        //    ->name('nutricionistas.registro-rapido');
+
+        Route::post('/nutricionistas/registro-rapido', [NutricionistaController::class, 'guardarRegistroRapido'])
+            ->name('nutricionistas.guardar-registro-rapido');
 
         // ======================
         // PACIENTES
@@ -92,7 +97,8 @@ Route::middleware(['auth', 'check.estado', 'verificar.rol.activo'])->group(funct
         Route::put('/pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
         Route::patch('/pacientes/{paciente}/estado', [PacienteController::class, 'cambiarEstado'])
             ->name('pacientes.cambiar-estado');
-
+        Route::post('/pacientes/registro-rapido', [PacienteController::class, 'guardarRegistroRapido'])
+            ->name('pacientes.guardar-registro-rapido');
         // ======================
         // ASIGNACIONES NUTRICIONISTA - PACIENTE
         // ======================

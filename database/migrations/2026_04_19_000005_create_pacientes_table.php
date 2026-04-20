@@ -18,14 +18,6 @@ return new class extends Migration
                 ->unique()
                 ->comment('Código del usuario vinculado al perfil del paciente.');
 
-            // CAMPO: Fecha Paciente
-            $table->date('fec_pac')
-                ->comment('Fecha de registro base del paciente en el sistema.');
-
-            // CAMPO: Edad Paciente
-            $table->integer('eda_pac')
-                ->comment('Edad base del paciente al momento del registro.');
-
             // CAMPO: Sexo Paciente
             $table->string('sex_pac', 20)
                 ->comment('Sexo del paciente.');
@@ -34,9 +26,19 @@ return new class extends Migration
             $table->decimal('pes_pac', 8, 2)
                 ->comment('Peso base del paciente.');
 
-            // CAMPO: Talla Paciente
-            $table->decimal('tal_pac', 8, 2)
-                ->comment('Talla base del paciente.');
+            // CAMPO: Estatura Paciente
+            $table->decimal('estatura_pac', 8, 2)
+                ->comment('Estatura o altura del paciente.');
+
+            // CAMPO: Tipo Sangre Paciente
+            $table->string('tip_san_pac', 20)
+                ->nullable()
+                ->comment('Tipo de sangre del paciente.');
+
+            // CAMPO: Alergias Paciente
+            $table->text('ale_pac')
+                ->nullable()
+                ->comment('Alergias declaradas por el paciente.');
 
             // CAMPO: Estado Paciente
             $table->string('est_pac', 20)

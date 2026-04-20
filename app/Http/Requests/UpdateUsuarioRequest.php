@@ -19,6 +19,11 @@ class UpdateUsuarioRequest extends FormRequest
 
         $rules = [
             'nom_usu' => ['required', 'string', 'max:120'],
+            'ape_usu' => ['required', 'string', 'max:120'],
+            'ci_usu' => ['required', 'string', 'max:30'],
+            'ext_ci_usu' => ['required', 'string', 'max:20'],
+            'fec_nac_usu' => ['required', 'date'],
+            'fot_usu' => ['nullable', 'image', 'max:2048'],
             'cor_usu' => [
                 'required',
                 'string',
@@ -38,11 +43,11 @@ class UpdateUsuarioRequest extends FormRequest
         }
 
         if ($this->boolean('tiene_perfil_paciente')) {
-            $rules['fec_pac'] = ['required', 'date'];
-            $rules['eda_pac'] = ['required', 'integer', 'min:1'];
             $rules['sex_pac'] = ['required', Rule::in(['masculino', 'femenino', 'otro'])];
             $rules['pes_pac'] = ['required', 'numeric', 'gt:0'];
-            $rules['tal_pac'] = ['required', 'numeric', 'gt:0'];
+            $rules['estatura_pac'] = ['required', 'numeric', 'gt:0'];
+            $rules['tip_san_pac'] = ['nullable', 'string', 'max:20'];
+            $rules['ale_pac'] = ['nullable', 'string'];
             $rules['est_pac'] = ['required', Rule::in(['activo', 'inactivo'])];
         }
 
@@ -52,24 +57,27 @@ class UpdateUsuarioRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nom_usu.required' => 'El nombre es obligatorio.',
+            'nom_usu.required' => 'Los nombres son obligatorios.',
+            'ape_usu.required' => 'Los apellidos son obligatorios.',
+            'ci_usu.required' => 'El CI es obligatorio.',
+            'ext_ci_usu.required' => 'La extensión del CI es obligatoria.',
+            'fec_nac_usu.required' => 'La fecha de nacimiento es obligatoria.',
             'cor_usu.required' => 'El correo es obligatorio.',
             'cor_usu.email' => 'El correo debe tener un formato válido.',
             'cor_usu.unique' => 'Este correo ya está registrado.',
             'cla_usu.confirmed' => 'La confirmación de contraseña no coincide.',
             'cla_usu.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'est_usu.required' => 'El estado del usuario es obligatorio.',
             'roles.required' => 'Debes asignar al menos un rol.',
             'roles.min' => 'Debes asignar al menos un rol.',
             'esp_nut.max' => 'La especialidad no debe superar los 100 caracteres.',
-            'fec_pac.required' => 'La fecha de registro del paciente es obligatoria.',
-            'eda_pac.required' => 'La edad es obligatoria.',
-            'eda_pac.min' => 'La edad debe ser mayor que cero.',
             'sex_pac.required' => 'El sexo es obligatorio.',
             'pes_pac.required' => 'El peso es obligatorio.',
             'pes_pac.gt' => 'El peso debe ser mayor que cero.',
-            'tal_pac.required' => 'La talla es obligatoria.',
-            'tal_pac.gt' => 'La talla debe ser mayor que cero.',
+            'estatura_pac.required' => 'La estatura es obligatoria.',
+            'estatura_pac.gt' => 'La estatura debe ser mayor que cero.',
+            'tip_san_pac.max' => 'El tipo de sangre no debe superar los 20 caracteres.',
+            'fot_usu.image' => 'La foto debe ser una imagen válida.',
+            'fot_usu.max' => 'La foto no debe superar los 2 MB.',
         ];
     }
 }

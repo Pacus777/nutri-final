@@ -13,7 +13,12 @@ class SuperAdminSeeder extends Seeder
         $usuario = Usuario::firstOrCreate(
             ['cor_usu' => 'dilanjpacogarcia@gmail.com'],
             [
-                'nom_usu' => 'Super Administrador',
+                'nom_usu' => 'Super',
+                'ape_usu' => 'Administrador',
+                'ci_usu' => '0000000',
+                'ext_ci_usu' => 'LP',
+                'fec_nac_usu' => '1990-01-01',
+                'fot_usu' => null,
                 'cla_usu' => 'Admin12345*',
                 'est_usu' => 'activo',
             ]

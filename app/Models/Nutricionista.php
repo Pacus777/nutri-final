@@ -27,6 +27,15 @@ class Nutricionista extends Model
         return $this->belongsTo(Usuario::class, 'cod_usuarios_nut', 'cod_usuarios');
     }
 
+    public function asignacionesPaciente()
+    {
+        return $this->hasMany(
+            AsignacionNutricionistaPaciente::class,
+            'cod_nutricionistas_anp',
+            'cod_nutricionistas'
+        );
+    }
+
     /**
      * Verifica si el nutricionista está activo.
      */
@@ -41,14 +50,5 @@ class Nutricionista extends Model
     public function estaInactivo(): bool
     {
         return $this->est_nut === 'inactivo';
-    }
-
-    public function asignacionesPaciente()
-    {
-        return $this->hasMany(
-            AsignacionNutricionistaPaciente::class,
-            'cod_nutricionistas_anp',
-            'cod_nutricionistas'
-        );
     }
 }

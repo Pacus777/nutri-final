@@ -20,17 +20,20 @@ class AsignacionNutricionistaPaciente extends Model
         'est_anp',
     ];
 
-    /**
-     * Relación: la asignación pertenece a un nutricionista.
-     */
+    protected function casts(): array
+    {
+        return [
+            'fec_anp' => 'date',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+        ];
+    }
+
     public function nutricionista()
     {
         return $this->belongsTo(Nutricionista::class, 'cod_nutricionistas_anp', 'cod_nutricionistas');
     }
 
-    /**
-     * Relación: la asignación pertenece a un paciente.
-     */
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'cod_pacientes_anp', 'cod_pacientes');
