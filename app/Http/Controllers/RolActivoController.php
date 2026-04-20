@@ -76,6 +76,8 @@ class RolActivoController extends Controller
             'nom_rol_activo' => $rol->nom_rol,
         ]);
 
-        return back()->with('success', 'Rol activo actualizado correctamente.');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Rol activo actualizado correctamente.');
     }
 }

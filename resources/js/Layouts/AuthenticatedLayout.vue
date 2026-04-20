@@ -16,8 +16,6 @@ const rolesDisponibles = computed(() => page.props.auth?.roles_disponibles ?? []
 const cambiarRol = (codRol) => {
     router.post(route('roles.cambiar'), {
         cod_rol: codRol,
-    }, {
-        preserveScroll: true,
     });
 };
 
