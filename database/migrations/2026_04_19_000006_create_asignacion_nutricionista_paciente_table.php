@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,16 +14,20 @@ return new class extends Migration
             $table->bigIncrements('cod_asignacion_nutricionista_paciente');
 
             // FK: Código Nutricionistas Asignación Nutricionista Paciente
-            $table->unsignedBigInteger('cod_nutricionistas_anp');
+            $table->unsignedBigInteger('cod_nutricionistas_anp')
+                ->comment('Código del nutricionista responsable asignado al paciente.');
 
             // FK: Código Pacientes Asignación Nutricionista Paciente
-            $table->unsignedBigInteger('cod_pacientes_anp');
+            $table->unsignedBigInteger('cod_pacientes_anp')
+                ->comment('Código del paciente asignado al nutricionista.');
 
             // CAMPO: Fecha Asignación Nutricionista Paciente
-            $table->date('fec_anp');
+            $table->date('fec_anp')
+                ->comment('Fecha en la que se registra la asignación del nutricionista al paciente.');
 
             // CAMPO: Estado Asignación Nutricionista Paciente
-            $table->string('est_anp', 20);
+            $table->string('est_anp', 20)
+                ->comment('Estado de la asignación: activa, cerrada o reasignada.');
 
             $table->timestamps();
 
@@ -34,6 +39,8 @@ return new class extends Migration
                 ->references('cod_pacientes')
                 ->on('pacientes');
         });
+
+        DB::statement("ALTER TABLE asignacion_nutricionista_paciente COMMENT = 'Tabla de asignación formal entre nutricionistas y pacientes, con historial de cambios de responsable.'");
     }
 
     public function down(): void

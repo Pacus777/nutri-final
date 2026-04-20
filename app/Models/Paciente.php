@@ -40,4 +40,22 @@ class Paciente extends Model
     {
         return $this->est_pac === 'inactivo';
     }
+
+    public function asignacionesNutricionista()
+    {
+        return $this->hasMany(
+            AsignacionNutricionistaPaciente::class,
+            'cod_pacientes_anp',
+            'cod_pacientes'
+        );
+    }
+
+    public function asignacionActiva()
+    {
+        return $this->hasOne(
+            AsignacionNutricionistaPaciente::class,
+            'cod_pacientes_anp',
+            'cod_pacientes'
+        )->where('est_anp', 'activa');
+    }
 }

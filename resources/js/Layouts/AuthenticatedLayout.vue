@@ -35,6 +35,10 @@ const puedeVerPacientes = computed(() =>
     ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
 );
 
+const puedeVerAsignaciones = computed(() =>
+    ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
+);
+
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -104,6 +108,16 @@ const showingNavigationDropdown = ref(false);
                                         || route().current('pacientes.show')"
                                 >
                                     Pacientes
+                                </NavLink>
+
+                                <NavLink
+                                    v-if="puedeVerAsignaciones"
+                                    :href="route('asignaciones.index')"
+                                    :active="route().current('asignaciones.index')
+                                        || route().current('asignaciones.create')
+                                        || route().current('asignaciones.historial-paciente')"
+                                >
+                                    Asignaciones
                                 </NavLink>
                             </div>
                         </div>
@@ -261,6 +275,16 @@ const showingNavigationDropdown = ref(false);
                                 || route().current('pacientes.show')"
                         >
                             Pacientes
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            v-if="puedeVerAsignaciones"
+                            :href="route('asignaciones.index')"
+                            :active="route().current('asignaciones.index')
+                                || route().current('asignaciones.create')
+                                || route().current('asignaciones.historial-paciente')"
+                        >
+                            Asignaciones
                         </ResponsiveNavLink>
                     </div>
 

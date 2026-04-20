@@ -42,4 +42,13 @@ class Nutricionista extends Model
     {
         return $this->est_nut === 'inactivo';
     }
+
+    public function asignacionesPaciente()
+    {
+        return $this->hasMany(
+            AsignacionNutricionistaPaciente::class,
+            'cod_nutricionistas_anp',
+            'cod_nutricionistas'
+        );
+    }
 }
