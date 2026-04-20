@@ -19,6 +19,14 @@ const cambiarRol = (codRol) => {
     });
 };
 
+const puedeVerUsuarios = computed(() =>
+    ['SuperAdmin', 'Administrador'].includes(rolActivo.value)
+);
+
+const puedeVerPanelSuperadmin = computed(() =>
+    rolActivo.value === 'SuperAdmin'
+);
+
 const showingNavigationDropdown = ref(false);
 </script>
 
@@ -50,6 +58,22 @@ const showingNavigationDropdown = ref(false);
                                     :active="route().current('dashboard')"
                                 >
                                     Dashboard
+                                </NavLink>
+
+                                <NavLink
+                                    v-if="puedeVerUsuarios"
+                                    :href="route('usuarios.index')"
+                                    :active="route().current('usuarios.index') || route().current('usuarios.create') || route().current('usuarios.edit')"
+                                >
+                                    Usuarios
+                                </NavLink>
+
+                                <NavLink
+                                    v-if="puedeVerPanelSuperadmin"
+                                    :href="route('panel.superadmin')"
+                                    :active="route().current('panel.superadmin')"
+                                >
+                                    Panel SuperAdmin
                                 </NavLink>
                             </div>
                         </div>
@@ -169,6 +193,22 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('dashboard')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            v-if="puedeVerUsuarios"
+                            :href="route('usuarios.index')"
+                            :active="route().current('usuarios.index') || route().current('usuarios.create') || route().current('usuarios.edit')"
+                        >
+                            Usuarios
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            v-if="puedeVerPanelSuperadmin"
+                            :href="route('panel.superadmin')"
+                            :active="route().current('panel.superadmin')"
+                        >
+                            Panel SuperAdmin
                         </ResponsiveNavLink>
                     </div>
 
