@@ -24,6 +24,9 @@ return new class extends Migration
             // CAMPO: Descripción Plan
             $table->text('des_pan');
 
+            // CAMPO: Estado Plan
+            $table->string('est_pan', 20);
+
             $table->timestamps();
 
             $table->foreign('cod_pacientes_pan', 'fk_planes_nutricionales_pacientes')

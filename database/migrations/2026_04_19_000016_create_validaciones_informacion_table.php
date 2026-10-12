@@ -36,6 +36,11 @@ return new class extends Migration
             $table->foreign('cod_nutricionistas_vin', 'fk_validaciones_informacion_nutricionistas')
                 ->references('cod_nutricionistas')
                 ->on('nutricionistas');
+
+            $table->unique(
+                ['cod_registros_alimenticios_vin', 'cod_nutricionistas_vin'],
+                'uq_validacion_informacion_registro_nutricionista'
+            );
         });
     }
 

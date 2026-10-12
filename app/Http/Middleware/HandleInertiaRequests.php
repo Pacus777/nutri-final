@@ -31,24 +31,33 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+
+            'csrf_token' => csrf_token(),
+
             'auth' => [
                 'user' => fn () => $request->user() ? [
                     'cod_usuarios' => $request->user()->cod_usuarios,
                     'nom_usu' => $request->user()->nom_usu,
+                    'ape_usu' => $request->user()->ape_usu ?? null,
                     'cor_usu' => $request->user()->cor_usu,
+                    'nombre_completo' => method_exists($request->user(), 'getNombreCompletoAttribute')
+                        ? $request->user()->nombre_completo
+                        : trim(($request->user()->nom_usu ?? '') . ' ' . ($request->user()->ape_usu ?? '')),
                 ] : null,
-                'rol_activo' => fn () => session('nom_rol_activo'),
-                'cod_rol_activo' => fn () => session('cod_rol_activo'),
+
+                'rol_activo' => fn () => session('rol_activo'),
+
                 'roles_disponibles' => fn () => $request->user()
                     ? $request->user()->roles()
                         ->orderBy('nom_rol')
                         ->get(['roles.cod_roles', 'roles.nom_rol'])
                         ->map(fn ($rol) => [
                             'cod_roles' => $rol->cod_roles,
-                            'nom_rol' => $rol->nom_rol,
+                            'nom_rol' => trim((string) $rol->nom_rol),
                         ])
                     : [],
             ],
+
             'flash' => [
                 'success' => fn () => session('success'),
                 'error' => fn () => session('error'),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SeleccionarRolActivoRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -11,73 +12,71 @@ class RolActivoController extends Controller
 {
     public function seleccionar(): Response|RedirectResponse
     {
-        $usuario = auth()->user()->load('roles');
+        $usuario = Auth::user();
 
-        if ($usuario->roles->isEmpty()) {
-            abort(403, 'El usuario no tiene roles asignados.');
+        $roles = $usuario->roles()
+            ->select('cod_roles', 'nom_rol')
+            ->get()
+            ->map(fn ($rol) => [
+                'cod_roles' => $rol->cod_roles,
+                'nom_rol' => trim((string) $rol->nom_rol),
+            ])
+            ->values();
+
+        $rolActivo = trim((string) session('nom_rol_activo', session('rol_activo')));
+
+        $rolesValidos = $roles->pluck('nom_rol')->toArray();
+
+        // Si ya tiene un rol activo válido, no mostrar selector
+        if ($rolActivo !== '' && in_array($rolActivo, $rolesValidos, true)) {
+            return redirect()->route('dashboard');
         }
 
-        if ($usuario->roles->count() === 1) {
-            $rol = $usuario->roles->first();
-
+        // Si solo tiene un rol, lo asignamos automáticamente
+        if ($roles->count() === 1) {
             session([
-                'cod_rol_activo' => $rol->cod_roles,
-                'nom_rol_activo' => $rol->nom_rol,
+                'cod_rol_activo' => $roles->first()['cod_roles'],
+                'nom_rol_activo' => $roles->first()['nom_rol'],
+                'rol_activo' => $roles->first()['nom_rol'],
             ]);
 
             return redirect()->route('dashboard');
         }
 
         return Inertia::render('Auth/SeleccionarRol', [
-            'roles' => $usuario->roles->map(function ($rol) {
-                return [
-                    'cod_roles' => $rol->cod_roles,
-                    'nom_rol' => $rol->nom_rol,
-                    'des_rol' => $rol->des_rol,
-                ];
-            }),
+            'roles' => $roles,
+            'rolActivo' => $rolActivo,
         ]);
     }
 
     public function guardar(SeleccionarRolActivoRequest $request): RedirectResponse
     {
-        $usuario = auth()->user()->load('roles');
+        $usuario = Auth::user();
 
-        $rol = $usuario->roles->firstWhere('cod_roles', (int) $request->cod_rol);
+        $rolSolicitado = $usuario->roles()
+            ->where('roles.cod_roles', $request->integer('cod_rol'))
+            ->where('est_rol', 'activo')
+            ->first();
 
-        if (! $rol) {
+        if (! $rolSolicitado) {
             return back()->withErrors([
-                'cod_rol' => 'El rol seleccionado no pertenece al usuario autenticado.',
+                'cod_rol' => 'El rol seleccionado no pertenece a este usuario.',
             ]);
         }
 
         session([
-            'cod_rol_activo' => $rol->cod_roles,
-            'nom_rol_activo' => $rol->nom_rol,
+            'cod_rol_activo' => $rolSolicitado->cod_roles,
+            'nom_rol_activo' => trim((string) $rolSolicitado->nom_rol),
+            'rol_activo' => trim((string) $rolSolicitado->nom_rol),
         ]);
 
         return redirect()->route('dashboard');
     }
 
-    public function cambiar(SeleccionarRolActivoRequest $request): RedirectResponse
+    public function cambiar(): RedirectResponse
     {
-        $usuario = auth()->user()->load('roles');
+        session()->forget(['cod_rol_activo', 'nom_rol_activo', 'rol_activo']);
 
-        $rol = $usuario->roles->firstWhere('cod_roles', (int) $request->cod_rol);
-
-        if (! $rol) {
-            return back()->withErrors([
-                'cod_rol' => 'No puedes activar un rol que no tienes asignado.',
-            ]);
-        }
-
-        session([
-            'cod_rol_activo' => $rol->cod_roles,
-            'nom_rol_activo' => $rol->nom_rol,
-        ]);
-
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Rol activo actualizado correctamente.');
+        return redirect()->route('roles.seleccionar');
     }
 }

@@ -13,10 +13,10 @@ class CheckUsuarioEstado
     {
         $usuario = Auth::user();
 
-        if ($usuario && $usuario->est_usu !== 'activo') {
+        if ($usuario && ! $usuario->estaActivo()) {
             Auth::logout();
 
-            return redirect()->route('login')->withErrors([
+            return redirect()->route('login', [], 303)->withErrors([
                 'cor_usu' => 'Tu cuenta no está activa para ingresar al sistema.',
             ]);
         }

@@ -31,7 +31,7 @@ class RolSeeder extends Seeder
         foreach ($roles as $rol) {
             Rol::firstOrCreate(
                 ['nom_rol' => $rol['nom_rol']],
-                ['des_rol' => $rol['des_rol']]
+                ['des_rol' => $rol['des_rol'], 'est_rol' => 'activo']
             );
         }
     }

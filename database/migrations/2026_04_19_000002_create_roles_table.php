@@ -18,6 +18,11 @@ return new class extends Migration
             // CAMPO: Descripción Rol
             $table->text('des_rol')->nullable();
 
+            // CAMPO: Estado Rol
+            $table->string('est_rol', 20)
+                ->default('activo')
+                ->comment('Estado del rol: activo o inactivo');
+
             $table->timestamps();
         });
     }

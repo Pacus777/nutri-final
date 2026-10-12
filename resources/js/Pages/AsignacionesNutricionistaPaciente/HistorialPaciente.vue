@@ -48,6 +48,10 @@ const page = usePage();
 
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
+                        <div v-if="paciente.asignacion_activa" class="mb-4 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
+                            Asignación activa actual: {{ paciente.asignacion_activa.nutricionista?.usuario?.nom_usu ?? 'No disponible' }}
+                        </div>
+
                         <div v-if="historial.length === 0" class="text-gray-500">
                             Este paciente no tiene historial de asignaciones.
                         </div>

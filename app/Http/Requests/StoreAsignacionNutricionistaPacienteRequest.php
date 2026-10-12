@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Nutricionista;
+use App\Models\Paciente;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,6 +22,33 @@ class StoreAsignacionNutricionistaPacienteRequest extends FormRequest
             'fec_anp' => ['required', 'date'],
             'est_anp' => ['required', Rule::in(['activa', 'cerrada', 'reasignada'])],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $pacienteId = $this->input('cod_pacientes_anp');
+            $nutricionistaId = $this->input('cod_nutricionistas_anp');
+
+            $paciente = Paciente::find($pacienteId);
+            $nutricionista = Nutricionista::find($nutricionistaId);
+
+            if ($paciente && !$paciente->estaActivo()) {
+                $validator->errors()->add('cod_pacientes_anp', 'El paciente debe estar activo.');
+            }
+
+            if ($nutricionista && !$nutricionista->estaActivo()) {
+                $validator->errors()->add('cod_nutricionistas_anp', 'El nutricionista debe estar activo.');
+            }
+
+            if ($paciente && $paciente->asignacionActiva()->exists()) {
+                $activa = $paciente->asignacionActiva()->first();
+
+                if ($activa && (int) $activa->cod_nutricionistas_anp === (int) $nutricionistaId) {
+                    $validator->errors()->add('cod_nutricionistas_anp', 'El paciente ya tiene una asignación activa con ese nutricionista.');
+                }
+            }
+        });
     }
 
     public function messages(): array

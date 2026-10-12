@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidaEdadNacimiento;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StorePacienteRapidoRequest extends FormRequest
 {
+    use ValidaEdadNacimiento;
+
     public function authorize(): bool
     {
         return true;
@@ -41,6 +44,8 @@ class StorePacienteRapidoRequest extends FormRequest
             'ci_usu.required' => 'El CI es obligatorio.',
             'ext_ci_usu.required' => 'La extensión del CI es obligatoria.',
             'fec_nac_usu.required' => 'La fecha de nacimiento es obligatoria.',
+            'fec_nac_usu.min_age' => 'No puede ser menor a 18 años.',
+            'fec_nac_usu.max_age' => 'No puede ser mayor a 50 años.',
             'cor_usu.required' => 'El correo es obligatorio.',
             'cor_usu.email' => 'El correo debe tener un formato válido.',
             'cor_usu.unique' => 'Este correo ya está registrado.',
@@ -58,5 +63,12 @@ class StorePacienteRapidoRequest extends FormRequest
             'fot_usu.image' => 'La foto debe ser una imagen válida.',
             'fot_usu.max' => 'La foto no debe superar los 2 MB.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $this->agregarValidacionEdadNacimiento($validator);
+
+        return $validator;
     }
 }

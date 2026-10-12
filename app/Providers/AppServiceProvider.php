@@ -21,5 +21,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        $this->commands([
+            \App\Console\Commands\ExportFeaturesCommand::class,
+            \App\Console\Commands\RegisterCandidateModelCommand::class,
+            \App\Console\Commands\PredictKMeansCommand::class,
+            \App\Console\Commands\CargarAlimentosBaseCommand::class,
+            \App\Console\Commands\ImportarAlimentosUsdaCommand::class,
+        ]);
     }
 }

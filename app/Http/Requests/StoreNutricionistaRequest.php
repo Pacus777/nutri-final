@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Usuario;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +25,26 @@ class StoreNutricionistaRequest extends FormRequest
             'esp_nut' => ['nullable', 'string', 'max:100'],
             'est_nut' => ['required', Rule::in(['activo', 'inactivo'])],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $usuarioId = $this->input('cod_usuarios_nut');
+            $usuario = Usuario::with(['nutricionista', 'paciente'])->find($usuarioId);
+
+            if (! $usuario) {
+                return;
+            }
+
+            if (! $usuario->estaActivo()) {
+                $validator->errors()->add('cod_usuarios_nut', 'El usuario debe estar activo.');
+            }
+
+            if ($usuario->paciente) {
+                $validator->errors()->add('cod_usuarios_nut', 'Ese usuario ya está registrado como paciente.');
+            }
+        });
     }
 
     public function messages(): array

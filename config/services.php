@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'usda' => [
+        'api_key' => env('USDA_API_KEY'),
+        'base_url' => env('USDA_BASE_URL', 'https://api.nal.usda.gov/fdc/v1'),
+        'default_page_size' => (int) env('USDA_DEFAULT_PAGE_SIZE', 20),
+        'verify_ssl' => env('USDA_VERIFY_SSL', true),
+    ],
 ];

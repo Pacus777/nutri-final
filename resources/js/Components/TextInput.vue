@@ -1,26 +1,34 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, useAttrs } from 'vue';
 
 const model = defineModel({
-    type: String,
-    required: true,
+    type: [String, Number],
+    required: false,
 });
 
-const input = ref(null);
-
-onMounted(() => {
-    if (input.value.hasAttribute('autofocus')) {
-        input.value.focus();
-    }
+const props = defineProps({
+    type: {
+        type: String,
+        default: 'text',
+    },
 });
 
-defineExpose({ focus: () => input.value.focus() });
+const attrs = useAttrs();
+
+const inputClasses = computed(() => {
+    return [
+        'mt-1 block w-full rounded-2xl border px-4 py-3 text-sm shadow-sm transition duration-200',
+        'border-white/10 bg-white/5 text-white placeholder:text-slate-400',
+        'focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/30',
+    ].join(' ');
+});
 </script>
 
 <template>
     <input
-        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         v-model="model"
-        ref="input"
+        :type="props.type"
+        :class="inputClasses"
+        v-bind="attrs"
     />
 </template>

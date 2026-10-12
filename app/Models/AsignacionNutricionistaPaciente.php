@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 
 class AsignacionNutricionistaPaciente extends Model
 {
@@ -20,14 +21,11 @@ class AsignacionNutricionistaPaciente extends Model
         'est_anp',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'fec_anp' => 'date',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'fec_anp' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function nutricionista()
     {
@@ -37,6 +35,23 @@ class AsignacionNutricionistaPaciente extends Model
     public function paciente()
     {
         return $this->belongsTo(Paciente::class, 'cod_pacientes_anp', 'cod_pacientes');
+    }
+
+    public function scopeActivas(Builder $query): Builder
+    {
+        return $query->where('est_anp', 'activa');
+    }
+
+    public function scopeCerradas(Builder $query): Builder
+    {
+        return $query->where('est_anp', 'cerrada');
+    }
+
+    public function cerrar(?string $motivo = null): bool
+    {
+        return $this->update([
+            'est_anp' => 'cerrada',
+        ]);
     }
 
     public function estaActiva(): bool

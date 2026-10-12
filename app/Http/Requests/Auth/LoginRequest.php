@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\Usuario;
 
 class LoginRequest extends FormRequest
 {
@@ -42,11 +43,31 @@ class LoginRequest extends FormRequest
 
         $usuario = Auth::user();
 
-        if ($usuario->est_usu !== 'activo') {
+        if (! $usuario instanceof Usuario) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'cor_usu' => 'No fue posible autenticar tu usuario.',
+            ]);
+        }
+
+        if (! $usuario->estaActivo()) {
             Auth::logout();
 
             throw ValidationException::withMessages([
                 'cor_usu' => 'Tu cuenta no está activa para ingresar al sistema.',
+            ]);
+        }
+
+        $rolesActivos = $usuario->roles()
+            ->where('est_rol', 'activo')
+            ->exists();
+
+        if (! $rolesActivos) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'cor_usu' => 'Tu usuario no tiene un rol activo asignado.',
             ]);
         }
 

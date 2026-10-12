@@ -24,6 +24,9 @@ return new class extends Migration
             // CAMPO: Cantidad Detalle Registro Alimenticio
             $table->decimal('can_dra', 10, 2);
 
+            // CAMPO: Unidad Detalle Registro Alimenticio
+            $table->string('uni_dra', 30)->nullable();
+
             // CAMPO: Hora Detalle Registro Alimenticio
             $table->time('hor_dra');
 

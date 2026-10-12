@@ -1,21 +1,63 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
+import PageHeader from '@/Components/UI/PageHeader.vue';
+import HeroPanel from '@/Components/UI/HeroPanel.vue';
+import UsuarioTable from '@/Components/Usuarios/UsuarioTable.vue';
+import UsuarioStats from '@/Components/Usuarios/UsuarioStats.vue';
+import Pagination from '@/Components/UI/Pagination.vue';
+import { Head, usePage, router } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     usuarios: {
-        type: Array,
-        default: () => [],
+        type: Object,
+        required: true,
+    },
+    filtros: {
+        type: Object,
+        default: () => ({ buscar: '' }),
+    },
+    resumenGlobal: {
+        type: Object,
+        required: true,
     },
 });
 
 const cambiarEstado = (codUsuario, estado) => {
-    router.patch(route('usuarios.cambiar-estado', codUsuario), {
+    router.patch(route('admin.usuarios.cambiar-estado', codUsuario), {
         est_usu: estado,
     });
 };
 
 const page = usePage();
+const busqueda = ref(props.filtros.buscar || '');
+let timeoutId = null;
+
+// Búsqueda en servidor en tiempo real con 300ms de debounce
+watch(busqueda, (nuevoValor) => {
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+    }
+
+    timeoutId = setTimeout(() => {
+        router.get(
+            route('admin.usuarios.index'),
+            { buscar: nuevoValor },
+            {
+                preserveState: true,
+                replace: true,
+            }
+        );
+    }, 300);
+});
+
+// Resumen del sistema
+const resumen = computed(() => ({
+    total: props.resumenGlobal.total,
+    activos: props.resumenGlobal.activos,
+    inactivos: props.resumenGlobal.inactivos,
+    bloqueados: props.resumenGlobal.bloqueados,
+}));
 </script>
 
 <template>
@@ -23,112 +65,72 @@ const page = usePage();
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Gestión de Usuarios
-                </h2>
-
-                <Link
-                    :href="route('usuarios.create')"
-                    class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                >
-                    Nuevo usuario
-                </Link>
-            </div>
+            <PageHeader
+                title="Gestión de Usuarios"
+                description="Administra accesos, estados y perfiles del sistema."
+                action-text="Nuevo usuario"
+                :action-href="route('admin.usuarios.create')"
+            />
         </template>
 
-        <div class="py-8">
+        <div class="auth-shell py-8">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div
-                    v-if="page.props.flash?.success"
-                    class="mb-4 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-700"
+
+
+                <HeroPanel
+                    eyebrow="Administración interna"
+                    title="Panel de usuarios"
+                    description="Centraliza la gestión de accesos y estados para mantener la operación segura y ordenada."
                 >
-                    {{ page.props.flash.success }}
+                    <template #aside>
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Resumen rápido</p>
+
+                        <div class="mt-3 space-y-2 text-sm text-slate-300">
+                            <p>
+                                Total de usuarios:
+                                <span class="font-semibold text-white">{{ resumen.total }}</span>
+                            </p>
+                            <p>
+                                Usuarios activos:
+                                <span class="font-semibold text-emerald-300">{{ resumen.activos }}</span>
+                            </p>
+                        </div>
+                    </template>
+                </HeroPanel>
+
+                <UsuarioStats :resumen="resumen" />
+
+                <div class="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <label class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                        Buscar usuario
+                    </label>
+                    <input
+                        v-model="busqueda"
+                        type="text"
+                        placeholder="Busca por nombre, correo, código o estado"
+                        class="mt-2 w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
+                    >
                 </div>
 
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <div class="p-6 text-gray-900">
-                        <div v-if="usuarios.length === 0" class="text-gray-500">
-                            No hay usuarios registrados.
-                        </div>
+                        <UsuarioTable
+                            :usuarios="usuarios.data"
+                            @cambiar-estado="cambiarEstado"
+                        />
 
-                        <div v-else class="overflow-x-auto">
-                            <table class="min-w-full border border-gray-200">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="border px-4 py-2 text-left">Código</th>
-                                        <th class="border px-4 py-2 text-left">Nombre</th>
-                                        <th class="border px-4 py-2 text-left">Correo</th>
-                                        <th class="border px-4 py-2 text-left">Estado</th>
-                                        <th class="border px-4 py-2 text-left">Roles</th>
-                                        <th class="border px-4 py-2 text-left">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="usuario in usuarios" :key="usuario.cod_usuarios">
-                                        <td class="border px-4 py-2">{{ usuario.cod_usuarios }}</td>
-                                        <td class="border px-4 py-2">{{ usuario.nom_usu }}</td>
-                                        <td class="border px-4 py-2">{{ usuario.cor_usu }}</td>
-                                        <td class="border px-4 py-2 capitalize">{{ usuario.est_usu }}</td>
-                                        <td class="border px-4 py-2">
-                                            <span
-                                                v-if="usuario.roles.length"
-                                                class="flex flex-wrap gap-2"
-                                            >
-                                                <span
-                                                    v-for="rol in usuario.roles"
-                                                    :key="rol.cod_roles"
-                                                    class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800"
-                                                >
-                                                    {{ rol.nom_rol }}
-                                                </span>
-                                            </span>
-                                            <span v-else class="text-red-600">
-                                                Sin roles
-                                            </span>
-                                        </td>
-                                        <td class="border px-4 py-2">
-                                            <div class="flex flex-col gap-2">
-                                                <Link
-                                                    :href="route('usuarios.edit', usuario.cod_usuarios)"
-                                                    class="text-indigo-600 hover:underline"
-                                                >
-                                                    Editar
-                                                </Link>
+                        <!-- Paginación responsiva premium -->
+                        <Pagination :links="usuarios.links" />
 
-                                                <div class="flex flex-wrap gap-2">
-                                                    <button
-                                                        type="button"
-                                                        class="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
-                                                        @click="cambiarEstado(usuario.cod_usuarios, 'activo')"
-                                                    >
-                                                        Activar
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        class="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
-                                                        @click="cambiarEstado(usuario.cod_usuarios, 'inactivo')"
-                                                    >
-                                                        Inactivar
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        class="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
-                                                        @click="cambiarEstado(usuario.cod_usuarios, 'bloqueado')"
-                                                    >
-                                                        Bloquear
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div
+                            v-if="page.props.errors?.general"
+                            class="mt-4 rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                        >
+                            {{ page.props.errors.general }}
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>

@@ -4,23 +4,45 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerificarRol
 {
-    public function handle(Request $request, Closure $next, ...$roles): Response
+    public function handle(Request $request, Closure $next, ...$rolesPermitidos): Response
     {
-        $rolActivo = session('nom_rol_activo');
+        if (! Auth::check()) {
+            Log::info('VerificarRol: Auth not authenticated', [
+                'request_path' => $request->path(),
+                'method' => $request->method(),
+            ]);
 
-        if (! $rolActivo) {
-            return redirect()->route('roles.seleccionar')
-                ->withErrors([
-                    'general' => 'Debes seleccionar un rol activo para continuar.',
-                ]);
+            return redirect()->route('login', [], 303);
         }
 
-        if (! in_array($rolActivo, $roles, true)) {
-            abort(403, 'No tienes permisos para acceder a esta sección con el rol activo actual.');
+        $rolActivo = trim((string) session('nom_rol_activo', session('rol_activo')));
+
+        $rolesPermitidos = collect($rolesPermitidos)
+            ->map(fn ($rol) => trim((string) $rol))
+            ->values()
+            ->toArray();
+
+        if ($rolActivo === '' || ! in_array($rolActivo, $rolesPermitidos, true)) {
+            Log::info('VerificarRol: rol activo inválido o sin permiso', [
+                'user_id' => Auth::id(),
+                'rolActivo' => $rolActivo,
+                'rolesPermitidos' => $rolesPermitidos,
+                'request_path' => $request->path(),
+                'method' => $request->method(),
+            ]);
+
+            session()->forget(['cod_rol_activo', 'nom_rol_activo', 'rol_activo']);
+
+            return redirect()->route('roles.seleccionar', [], 303)
+                ->withErrors([
+                    'rol' => 'No tienes permiso para acceder a esta sección.',
+                ]);
         }
 
         return $next($request);

@@ -1,11 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RolActivoController;
-use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\Administracion\NutricionistaController;
-use App\Http\Controllers\Administracion\PacienteController;
-use App\Http\Controllers\Administracion\AsignacionNutricionistaPacienteController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,102 +15,40 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Rutas autenticadas que NO exigen rol activo
+| Rutas autenticadas sin rol activo obligatorio
 |--------------------------------------------------------------------------
-| Aquí van las rutas que sirven justamente para establecer el rol activo.
 */
 Route::middleware(['auth', 'check.estado'])->group(function () {
-    Route::get('/seleccionar-rol', [RolActivoController::class, 'seleccionar'])
-        ->name('roles.seleccionar');
-
-    Route::post('/seleccionar-rol', [RolActivoController::class, 'guardar'])
-        ->name('roles.guardar');
-
-    Route::post('/cambiar-rol-activo', [RolActivoController::class, 'cambiar'])
-        ->name('roles.cambiar');
+    require __DIR__ . '/web/roles.php';
 });
 
 /*
 |--------------------------------------------------------------------------
-| Rutas autenticadas que SÍ exigen rol activo
+| Rutas autenticadas con rol activo obligatorio
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'check.estado', 'verificar.rol.activo'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    require __DIR__ . '/web/dashboard.php';
+    require __DIR__ . '/web/profile.php';
+    require __DIR__ . '/web/paciente.php';
+    require __DIR__ . '/web/nutricionista.php';
+    require __DIR__ . '/web/shared.php';
+    require __DIR__ . '/web/reportes.php';
+    require __DIR__ . '/web/admin.php';
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::middleware(['verificar.rol:SuperAdmin'])->group(function () {
-        Route::get('/panel-superadmin', function () {
-            return 'Bienvenido, SuperAdmin';
-        })->name('panel.superadmin');
-    });
-
-    Route::middleware(['verificar.rol:SuperAdmin,Administrador'])->group(function () {
-
-        // ======================
-        // USUARIOS
-        // ======================
-        Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
-        Route::get('/usuarios/crear', [UsuarioController::class, 'create'])->name('usuarios.create');
-        Route::post('/usuarios', [UsuarioController::class, 'store'])->name('usuarios.store');
-        Route::get('/usuarios/{usuario}/editar', [UsuarioController::class, 'edit'])->name('usuarios.edit');
-        Route::put('/usuarios/{usuario}', [UsuarioController::class, 'update'])->name('usuarios.update');
-        Route::patch('/usuarios/{usuario}/estado', [UsuarioController::class, 'cambiarEstado'])
-            ->name('usuarios.cambiar-estado');
-
-        // ======================
-        // NUTRICIONISTAS
-        // ======================
-        Route::get('/nutricionistas', [NutricionistaController::class, 'index'])->name('nutricionistas.index');
-        Route::get('/nutricionistas/crear', [NutricionistaController::class, 'create'])->name('nutricionistas.create');
-        Route::post('/nutricionistas', [NutricionistaController::class, 'store'])->name('nutricionistas.store');
-        Route::get('/nutricionistas/{nutricionista}', [NutricionistaController::class, 'show'])->name('nutricionistas.show');
-        Route::get('/nutricionistas/{nutricionista}/editar', [NutricionistaController::class, 'edit'])->name('nutricionistas.edit');
-        Route::put('/nutricionistas/{nutricionista}', [NutricionistaController::class, 'update'])->name('nutricionistas.update');
-        Route::patch('/nutricionistas/{nutricionista}/estado', [NutricionistaController::class, 'cambiarEstado'])
-            ->name('nutricionistas.cambiar-estado');
-        //Route::get('/nutricionistas/registro-rapido', [NutricionistaController::class, 'registroRapido'])
-        //    ->name('nutricionistas.registro-rapido');
-
-        Route::post('/nutricionistas/registro-rapido', [NutricionistaController::class, 'guardarRegistroRapido'])
-            ->name('nutricionistas.guardar-registro-rapido');
-
-        // ======================
-        // PACIENTES
-        // ======================
-        Route::get('/pacientes', [PacienteController::class, 'index'])->name('pacientes.index');
-        Route::get('/pacientes/crear', [PacienteController::class, 'create'])->name('pacientes.create');
-        Route::post('/pacientes', [PacienteController::class, 'store'])->name('pacientes.store');
-        Route::get('/pacientes/{paciente}', [PacienteController::class, 'show'])->name('pacientes.show');
-        Route::get('/pacientes/{paciente}/editar', [PacienteController::class, 'edit'])->name('pacientes.edit');
-        Route::put('/pacientes/{paciente}', [PacienteController::class, 'update'])->name('pacientes.update');
-        Route::patch('/pacientes/{paciente}/estado', [PacienteController::class, 'cambiarEstado'])
-            ->name('pacientes.cambiar-estado');
-        Route::post('/pacientes/registro-rapido', [PacienteController::class, 'guardarRegistroRapido'])
-            ->name('pacientes.guardar-registro-rapido');
-        // ======================
-        // ASIGNACIONES NUTRICIONISTA - PACIENTE
-        // ======================
-        Route::get('/asignaciones', [AsignacionNutricionistaPacienteController::class, 'index'])
-            ->name('asignaciones.index');
-
-        Route::get('/asignaciones/crear', [AsignacionNutricionistaPacienteController::class, 'create'])
-            ->name('asignaciones.create');
-
-        Route::post('/asignaciones', [AsignacionNutricionistaPacienteController::class, 'store'])
-            ->name('asignaciones.store');
-
-        Route::get('/pacientes/{paciente}/historial-asignaciones', [AsignacionNutricionistaPacienteController::class, 'historialPaciente'])
-            ->name('asignaciones.historial-paciente');
-
-        Route::patch('/asignaciones/{asignacion}/estado', [AsignacionNutricionistaPacienteController::class, 'actualizarEstado'])
-            ->name('asignaciones.actualizar-estado');
-    });
+    // Rutas de Notificaciones API
+    Route::get('/api/notificaciones/no-leidas', [\App\Http\Controllers\NotificacionController::class, 'obtenerNoLeidas'])
+        ->name('api.notificaciones.no-leidas');
+    Route::get('/api/notificaciones/todas', [\App\Http\Controllers\NotificacionController::class, 'obtenerTodas'])
+        ->name('api.notificaciones.todas');
+    Route::post('/api/notificaciones/{notificacion}/leer', [\App\Http\Controllers\NotificacionController::class, 'marcarLeida'])
+        ->name('api.notificaciones.leer');
+    Route::post('/api/notificaciones/{notificacion}/alternar', [\App\Http\Controllers\NotificacionController::class, 'alternarEstado'])
+        ->name('api.notificaciones.alternar');
+    Route::post('/api/notificaciones/leer-todas', [\App\Http\Controllers\NotificacionController::class, 'marcarTodasLeidas'])
+        ->name('api.notificaciones.leer-todas');
+    Route::get('/api/paciente/recomendaciones', [\App\Http\Controllers\NotificacionController::class, 'obtenerRecomendaciones'])
+        ->name('api.paciente.recomendaciones');
 });
 
 require __DIR__ . '/auth.php';

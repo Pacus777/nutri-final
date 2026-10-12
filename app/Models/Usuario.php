@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\EstadoUsuario;
+use App\Enums\EstadoPerfil;
 
 class Usuario extends Authenticatable
 {
@@ -35,15 +37,13 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'cla_usu' => 'hashed',
-            'fec_nac_usu' => 'date',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'cla_usu' => 'hashed',
+        'fec_nac_usu' => 'date',
+        'est_usu' => EstadoUsuario::class,
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     /**
      * Laravel usa este campo como contraseña autenticable.
@@ -103,21 +103,50 @@ class Usuario extends Authenticatable
 
     public function estaActivo(): bool
     {
-        return $this->est_usu === 'activo';
+        return $this->est_usu === EstadoUsuario::ACTIVO;
     }
 
     public function estaInactivo(): bool
     {
-        return $this->est_usu === 'inactivo';
+        return $this->est_usu === EstadoUsuario::INACTIVO;
     }
 
     public function estaBloqueado(): bool
     {
-        return $this->est_usu === 'bloqueado';
+        return $this->est_usu === EstadoUsuario::BLOQUEADO;
     }
 
     public function tieneRol(string $rol): bool
     {
         return $this->roles->contains('nom_rol', $rol);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->tieneRol('Administrador') || $this->tieneRol('SuperAdmin');
+    }
+
+    public function isNutricionista(): bool
+    {
+        return $this->tieneRol('Nutricionista');
+    }
+
+    public function isPaciente(): bool
+    {
+        return $this->tieneRol('Paciente');
+    }
+
+    public function isActivo(): bool
+    {
+        return $this->est_usu === EstadoUsuario::ACTIVO;
+    }
+
+    /**
+     * Mapea el estado del usuario base al estado correspondiente para sus perfiles.
+     */
+    public static function estadoPerfilDesdeUsuario(string|EstadoUsuario $estadoUsuario): string
+    {
+        $val = $estadoUsuario instanceof EstadoUsuario ? $estadoUsuario->value : $estadoUsuario;
+        return $val === EstadoUsuario::ACTIVO->value ? EstadoPerfil::ACTIVO->value : EstadoPerfil::INACTIVO->value;
     }
 }

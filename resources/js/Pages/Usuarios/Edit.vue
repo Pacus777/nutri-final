@@ -1,21 +1,32 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import PageHeader from '@/Components/UI/PageHeader.vue';
+import HeroPanel from '@/Components/UI/HeroPanel.vue';
+
+import UsuarioDatosPersonalesForm from '@/Components/Usuarios/Form/UsuarioDatosPersonalesForm.vue';
+import UsuarioAccesoForm from '@/Components/Usuarios/Form/UsuarioAccesoForm.vue';
+import UsuarioRolesForm from '@/Components/Usuarios/Form/UsuarioRolesForm.vue';
+import UsuarioPerfilNutricionistaForm from '@/Components/Usuarios/Form/UsuarioPerfilNutricionistaForm.vue';
+import UsuarioPerfilPacienteForm from '@/Components/Usuarios/Form/UsuarioPerfilPacienteForm.vue';
+
+import { Head, useForm } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
 
 const props = defineProps({
-    usuario: Object,
-    roles: Array,
-    estados: Array,
+    usuario: {
+        type: Object,
+        required: true,
+    },
+    roles: {
+        type: Array,
+        default: () => [],
+    },
+    estados: {
+        type: Array,
+        default: () => [],
+    },
 });
-
-const previewFoto = ref(
-    props.usuario.fot_usu ? `/storage/${props.usuario.fot_usu}` : null
-);
 
 const form = useForm({
     nom_usu: props.usuario.nom_usu,
@@ -46,35 +57,47 @@ const form = useForm({
 
 const tienePerfilNutricionista = computed(() => form.tiene_perfil_nutricionista);
 const tienePerfilPaciente = computed(() => form.tiene_perfil_paciente);
+const tieneErrores = computed(() => Object.keys(form.errors).length > 0);
+
+const previewFoto = computed(() => {
+    return props.usuario.fot_usu ? `/storage/${props.usuario.fot_usu}` : null;
+});
+
+const estadoPerfilDesdeUsuario = (estadoUsuario) => {
+    return estadoUsuario === 'activo' ? 'activo' : 'inactivo';
+};
+
+watch(
+    () => form.est_usu,
+    (nuevoEstado) => {
+        if (form.tiene_perfil_paciente) {
+            form.est_pac = estadoPerfilDesdeUsuario(nuevoEstado);
+        }
+
+        if (form.tiene_perfil_nutricionista) {
+            form.est_nut = estadoPerfilDesdeUsuario(nuevoEstado);
+        }
+    },
+    { immediate: true }
+);
 
 const submit = () => {
     form
         .transform((data) => ({
             ...data,
+            est_pac: data.tiene_perfil_paciente
+                ? estadoPerfilDesdeUsuario(data.est_usu)
+                : data.est_pac,
+            est_nut: data.tiene_perfil_nutricionista
+                ? estadoPerfilDesdeUsuario(data.est_usu)
+                : data.est_nut,
             _method: 'put',
         }))
-        .post(route('usuarios.update', props.usuario.cod_usuarios), {
+        .post(route('admin.usuarios.update', props.usuario.cod_usuarios), {
             forceFormData: true,
         });
 };
 
-const toggleRol = (codRol) => {
-    if (form.roles.includes(codRol)) {
-        form.roles = form.roles.filter((id) => id !== codRol);
-        return;
-    }
-
-    form.roles.push(codRol);
-};
-
-const handleFile = (event) => {
-    const file = event.target.files[0];
-    form.fot_usu = file ?? null;
-
-    if (file) {
-        previewFoto.value = URL.createObjectURL(file);
-    }
-};
 </script>
 
 <template>
@@ -82,29 +105,58 @@ const handleFile = (event) => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Editar Usuario
-                </h2>
-
-                <Link
-                    :href="route('usuarios.index')"
-                    class="rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
-                >
-                    Volver
-                </Link>
-            </div>
+            <PageHeader
+                title="Editar Usuario"
+                description="Actualiza información personal, acceso y perfiles relacionados."
+                back-text="Volver"
+                :back-href="route('admin.usuarios.index')"
+            />
         </template>
 
-        <div class="py-8">
+        <div class="auth-shell py-8">
             <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                <HeroPanel
+                    eyebrow="Gestión de acceso"
+                    title="Editar usuario"
+                    description="Ajusta datos clave del usuario y sincroniza su perfil administrativo, profesional o clínico."
+                >
+                    <template #aside>
+                        <p class="text-xs uppercase tracking-[0.2em] text-slate-400">
+                            Correo actual
+                        </p>
+
+                        <p class="mt-3 text-sm font-semibold text-white">
+                            {{ form.cor_usu }}
+                        </p>
+
+                        <p class="mt-2 text-xs leading-5 text-slate-300">
+                            ID: {{ usuario.cod_usuarios }}
+                        </p>
+                    </template>
+                </HeroPanel>
+
+                <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <div class="p-6 text-gray-900">
-                        <form @submit.prevent="submit" class="space-y-6">
+                        <form
+                            @submit.prevent="submit"
+                            class="space-y-6"
+                        >
+                            <div
+                                v-if="tieneErrores"
+                                class="rounded-xl border border-rose-200 bg-rose-50 p-4"
+                            >
+                                <p class="text-sm font-semibold text-rose-800">
+                                    Revisa la información del formulario.
+                                </p>
+
+                                <p class="mt-1 text-xs text-rose-700">
+                                    Hay campos con errores. Corrige los mensajes marcados en rojo para continuar.
+                                </p>
+                            </div>
 
                             <div
                                 v-if="usuario.tiene_perfil_nutricionista"
-                                class="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+                                class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
                             >
                                 Este usuario tiene un perfil registrado en el módulo de nutricionistas.
                                 Mientras exista ese perfil, el rol <strong>Nutricionista</strong> es obligatorio.
@@ -112,297 +164,47 @@ const handleFile = (event) => {
 
                             <div
                                 v-if="usuario.tiene_perfil_paciente"
-                                class="rounded border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+                                class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
                             >
                                 Este usuario tiene un perfil registrado en el módulo de pacientes.
                                 Mientras exista ese perfil, el rol <strong>Paciente</strong> es obligatorio.
                             </div>
 
-                            <!-- DATOS PERSONALES -->
-                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div>
-                                    <InputLabel for="nom_usu" value="Nombres" />
-                                    <TextInput
-                                        id="nom_usu"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.nom_usu"
-                                        required
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.nom_usu" />
-                                </div>
+                            <UsuarioDatosPersonalesForm
+                                :form="form"
+                                :preview-inicial="previewFoto"
+                            />
 
-                                <div>
-                                    <InputLabel for="ape_usu" value="Apellidos" />
-                                    <TextInput
-                                        id="ape_usu"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.ape_usu"
-                                        required
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.ape_usu" />
-                                </div>
-                            </div>
+                            <UsuarioAccesoForm
+                                :form="form"
+                                :estados="props.estados"
+                                modo="editar"
+                            />
 
-                            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                <div>
-                                    <InputLabel for="ci_usu" value="CI" />
-                                    <TextInput
-                                        id="ci_usu"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.ci_usu"
-                                        required
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.ci_usu" />
-                                </div>
+                            <UsuarioRolesForm
+                                :form="form"
+                                :roles="props.roles"
+                            />
 
-                                <div>
-                                    <InputLabel for="ext_ci_usu" value="Extensión CI" />
-                                    <TextInput
-                                        id="ext_ci_usu"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.ext_ci_usu"
-                                        required
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.ext_ci_usu" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="fec_nac_usu" value="Fecha de nacimiento" />
-                                    <input
-                                        id="fec_nac_usu"
-                                        type="date"
-                                        v-model="form.fec_nac_usu"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.fec_nac_usu" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <InputLabel for="fot_usu" value="Foto (opcional)" />
-                                <input
-                                    id="fot_usu"
-                                    type="file"
-                                    @change="handleFile"
-                                    class="mt-1 block w-full"
-                                />
-                                <InputError class="mt-2" :message="form.errors.fot_usu" />
-
-                                <div v-if="previewFoto" class="mt-4">
-                                    <p class="mb-2 text-sm text-gray-600">Vista previa:</p>
-                                    <img
-                                        :src="previewFoto"
-                                        alt="Foto de usuario"
-                                        class="h-28 w-28 rounded object-cover border"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- DATOS DE ACCESO -->
-                            <div>
-                                <InputLabel for="cor_usu" value="Correo" />
-                                <TextInput
-                                    id="cor_usu"
-                                    type="email"
-                                    class="mt-1 block w-full"
-                                    v-model="form.cor_usu"
-                                    required
-                                />
-                                <InputError class="mt-2" :message="form.errors.cor_usu" />
-                            </div>
-
-                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                <div>
-                                    <InputLabel for="cla_usu" value="Nueva contraseña" />
-                                    <TextInput
-                                        id="cla_usu"
-                                        type="password"
-                                        class="mt-1 block w-full"
-                                        v-model="form.cla_usu"
-                                        placeholder="Opcional"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.cla_usu" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="cla_usu_confirmation" value="Confirmar nueva contraseña" />
-                                    <TextInput
-                                        id="cla_usu_confirmation"
-                                        type="password"
-                                        class="mt-1 block w-full"
-                                        v-model="form.cla_usu_confirmation"
-                                        placeholder="Opcional"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <InputLabel for="est_usu" value="Estado del usuario" />
-                                <select
-                                    id="est_usu"
-                                    v-model="form.est_usu"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                >
-                                    <option
-                                        v-for="estado in estados"
-                                        :key="estado"
-                                        :value="estado"
-                                    >
-                                        {{ estado }}
-                                    </option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.est_usu" />
-                            </div>
-
-                            <!-- ROLES -->
-                            <div>
-                                <InputLabel value="Roles" />
-                                <div class="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2">
-                                    <label
-                                        v-for="rol in roles"
-                                        :key="rol.cod_roles"
-                                        class="flex items-center gap-3 rounded border border-gray-200 px-4 py-3"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            :value="rol.cod_roles"
-                                            :checked="form.roles.includes(rol.cod_roles)"
-                                            @change="toggleRol(rol.cod_roles)"
-                                        />
-                                        <span>{{ rol.nom_rol }}</span>
-                                    </label>
-                                </div>
-                                <InputError class="mt-2" :message="form.errors.roles" />
-                            </div>
-
-                            <!-- PERFIL NUTRICIONISTA -->
-                            <div
+                            <UsuarioPerfilNutricionistaForm
                                 v-if="tienePerfilNutricionista"
-                                class="space-y-6 rounded border border-blue-200 bg-blue-50 p-4"
-                            >
-                                <h3 class="text-lg font-semibold text-blue-800">
-                                    Datos del perfil de nutricionista
-                                </h3>
+                                :form="form"
+                                descripcion="Ajusta estos datos para mantener actualizado el perfil profesional del nutricionista."
+                                bloquear-estado
+                            />
 
-                                <div>
-                                    <InputLabel for="esp_nut" value="Especialidad" />
-                                    <TextInput
-                                        id="esp_nut"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.esp_nut"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.esp_nut" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="est_nut" value="Estado del perfil" />
-                                    <select
-                                        id="est_nut"
-                                        v-model="form.est_nut"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    >
-                                        <option value="activo">activo</option>
-                                        <option value="inactivo">inactivo</option>
-                                    </select>
-                                    <InputError class="mt-2" :message="form.errors.est_nut" />
-                                </div>
-                            </div>
-
-                            <!-- PERFIL PACIENTE -->
-                            <div
+                            <UsuarioPerfilPacienteForm
                                 v-if="tienePerfilPaciente"
-                                class="space-y-6 rounded border border-green-200 bg-green-50 p-4"
-                            >
-                                <h3 class="text-lg font-semibold text-green-800">
-                                    Datos del perfil de paciente
-                                </h3>
-
-                                <div>
-                                    <InputLabel for="sex_pac" value="Sexo" />
-                                    <select
-                                        id="sex_pac"
-                                        v-model="form.sex_pac"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    >
-                                        <option value="">Seleccione una opción</option>
-                                        <option value="masculino">masculino</option>
-                                        <option value="femenino">femenino</option>
-                                        <option value="otro">otro</option>
-                                    </select>
-                                    <InputError class="mt-2" :message="form.errors.sex_pac" />
-                                </div>
-
-                                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div>
-                                        <InputLabel for="pes_pac" value="Peso" />
-                                        <input
-                                            id="pes_pac"
-                                            type="number"
-                                            step="0.01"
-                                            min="0.01"
-                                            v-model="form.pes_pac"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                        <InputError class="mt-2" :message="form.errors.pes_pac" />
-                                    </div>
-
-                                    <div>
-                                        <InputLabel for="estatura_pac" value="Estatura" />
-                                        <input
-                                            id="estatura_pac"
-                                            type="number"
-                                            step="0.01"
-                                            min="0.01"
-                                            v-model="form.estatura_pac"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        />
-                                        <InputError class="mt-2" :message="form.errors.estatura_pac" />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <InputLabel for="tip_san_pac" value="Tipo de sangre" />
-                                    <TextInput
-                                        id="tip_san_pac"
-                                        type="text"
-                                        class="mt-1 block w-full"
-                                        v-model="form.tip_san_pac"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.tip_san_pac" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="ale_pac" value="Alergias" />
-                                    <textarea
-                                        id="ale_pac"
-                                        v-model="form.ale_pac"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        rows="4"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.ale_pac" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="est_pac" value="Estado del perfil" />
-                                    <select
-                                        id="est_pac"
-                                        v-model="form.est_pac"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    >
-                                        <option value="activo">activo</option>
-                                        <option value="inactivo">inactivo</option>
-                                    </select>
-                                    <InputError class="mt-2" :message="form.errors.est_pac" />
-                                </div>
-                            </div>
+                                :form="form"
+                                descripcion="Ajusta estos datos para mantener actualizado el perfil clínico base del paciente."
+                                bloquear-estado
+                            />
 
                             <div class="flex justify-end">
-                                <PrimaryButton :disabled="form.processing">
+                                <PrimaryButton
+                                    class="motion-btn"
+                                    :disabled="form.processing"
+                                >
                                     Actualizar usuario
                                 </PrimaryButton>
                             </div>
